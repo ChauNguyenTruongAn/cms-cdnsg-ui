@@ -89,7 +89,7 @@ export default function ExportTab() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-[500px]">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-125">
       {/* THANH CÔNG CỤ (TÌM KIẾM & NÚT TẠO) */}
       <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center w-full md:w-96 bg-slate-50 p-3 rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-500/50 transition-all">

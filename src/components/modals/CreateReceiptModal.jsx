@@ -252,7 +252,7 @@ export default function CreateReceiptModal({
                   key={index}
                   className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl"
                 >
-                  <div className="flex-1 w-full relative z-[50]">
+                  <div className="flex-1 w-full relative z-50">
                     <SearchableSelect
                       options={materialOptions}
                       value={item.materialId}

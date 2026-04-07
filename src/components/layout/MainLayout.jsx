@@ -42,17 +42,23 @@ export default function MainLayout() {
     <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
-        <div className="p-6 border-b border-slate-100 bg-white">
-          <div className="flex items-center gap-4">
-            {" "}
-            <img
-              src="/logo-cms.png" // ĐƯỜNG DẪN TỚI LOGO TRONG THƯ MỤC PUBLIC
-              alt="Logo Kho BKNSG" // Tên thay thế cho logo
-              className="h-12 w-auto rounded-b-sm object-contain shadow-sm p-1" // Class styling
-            />
-            <div>
-              <h1 className="text-xl font-bold text-[#1a237e]">Phần mềm</h1>
-              <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">
+        <div className="p-5 border-b border-slate-100 bg-white">
+          <div className="flex items-center gap-3.5">
+            {/* Khung chứa Logo */}
+            <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-100 shadow-sm flex-shrink-0 transition-transform hover:scale-105">
+              <img
+                src="/logo.svg"
+                alt="Logo Kho BKNSG"
+                className="h-9 w-9 object-contain drop-shadow-sm"
+              />
+            </div>
+
+            {/* Khung chứa Text */}
+            <div className="flex flex-col justify-center">
+              <h1 className="text-[17px] font-extrabold text-[#1a237e] leading-none tracking-tight">
+                PHẦN MỀM
+              </h1>
+              <p className="text-[11px] text-slate-500 mt-1.5 uppercase tracking-widest font-bold">
                 Quản lý kho
               </p>
             </div>

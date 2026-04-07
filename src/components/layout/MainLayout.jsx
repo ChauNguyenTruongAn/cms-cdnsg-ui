@@ -42,11 +42,21 @@ export default function MainLayout() {
     <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
-        <div className="p-6 border-b border-slate-100">
-          <h1 className="text-xl font-bold text-[#1a237e]">KHO BKNSG</h1>
-          <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">
-            Quản lý thiết bị
-          </p>
+        <div className="p-6 border-b border-slate-100 bg-white">
+          <div className="flex items-center gap-4">
+            {" "}
+            <img
+              src="/logo-cms.png" // ĐƯỜNG DẪN TỚI LOGO TRONG THƯ MỤC PUBLIC
+              alt="Logo Kho BKNSG" // Tên thay thế cho logo
+              className="h-12 w-auto rounded-b-sm object-contain shadow-sm p-1" // Class styling
+            />
+            <div>
+              <h1 className="text-xl font-bold text-[#1a237e]">Phần mềm</h1>
+              <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">
+                Quản lý kho
+              </p>
+            </div>
+          </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
@@ -76,7 +86,9 @@ export default function MainLayout() {
       <main className="flex-1 flex flex-col overflow-hidden bg-slate-50">
         {/* Header */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sm:px-8 shrink-0">
-          <h2 className="text-lg font-bold text-slate-800">Hệ thống quản lý</h2>
+          <h2 className="text-lg font-bold text-[#1c72bd]">
+            Trường Cao đẳng Bách Khoa Nam Sài Gòn
+          </h2>
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Bell

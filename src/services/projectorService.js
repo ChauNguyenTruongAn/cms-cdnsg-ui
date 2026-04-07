@@ -67,4 +67,7 @@ export const projectorService = {
     axiosClient.get(`/projector-maintenances/projector/${projectorId}`),
   completeTicket: (id, payload) =>
     axiosClient.post(`/projector-maintenances/${id}/complete`, payload),
+
+  updateTicket: (id, payload) =>
+    axiosClient.put(`/projector-maintenances/${id}`, payload),
 };

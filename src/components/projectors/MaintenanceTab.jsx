@@ -9,6 +9,7 @@ import {
   Calendar,
   PenTool,
   AlertTriangle,
+  Edit,
 } from "lucide-react";
 import { projectorService } from "../../services/projectorService";
 import { useToast } from "../../context/ToastContext";
@@ -20,11 +21,14 @@ export default function MaintenanceTab() {
   const [loading, setLoading] = useState(true);
 
   // States Modals
-  const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false); // Dùng chung cho Create & Edit
   const [isCompleteTicketOpen, setIsCompleteTicketOpen] = useState(false);
+
+  // Biến lưu ticket đang thao tác (null = Create mode, có data = Edit/Complete mode)
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Form State tạo/sửa phiếu
   const [ticketForm, setTicketForm] = useState({
     ticketCode: "",
     startDate: new Date().toISOString().split("T")[0],
@@ -33,11 +37,11 @@ export default function MaintenanceTab() {
   });
   const [selectedProjectors, setSelectedProjectors] = useState([]);
 
-  // States hoàn tất phiếu BẢO TRÌ MỚI
+  // States hoàn tất phiếu
   const [completionDate, setCompletionDate] = useState(
     new Date().toISOString().split("T")[0],
   );
-  const [completionResults, setCompletionResults] = useState([]); // Mảng chứa trạng thái sau bảo trì của từng máy
+  const [completionResults, setCompletionResults] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -85,7 +89,40 @@ export default function MaintenanceTab() {
     );
   };
 
-  const submitCreateTicket = async () => {
+  // MỞ MODAL THÊM MỚI
+  const handleOpenCreate = () => {
+    setSelectedTicket(null);
+    setTicketForm({
+      ticketCode: "",
+      startDate: new Date().toISOString().split("T")[0],
+      technician: "",
+      generalNote: "",
+    });
+    setSelectedProjectors([]);
+    setIsTicketModalOpen(true);
+  };
+
+  // MỞ MODAL SỬA PHIẾU ĐANG BẢO TRÌ
+  const handleOpenEdit = (ticket) => {
+    setSelectedTicket(ticket);
+    setTicketForm({
+      ticketCode: ticket.ticketCode || "",
+      startDate: ticket.startDate || new Date().toISOString().split("T")[0],
+      technician: ticket.technician || "",
+      generalNote: ticket.generalNote || "",
+    });
+    // Lấy danh sách máy đang nằm trong phiếu này
+    const mappedDetails = ticket.details.map((dt) => ({
+      projectorId: dt.projector.id,
+      description: dt.description || "",
+      cost: dt.cost || 0,
+    }));
+    setSelectedProjectors(mappedDetails);
+    setIsTicketModalOpen(true);
+  };
+
+  // SUBMIT TẠO HOẶC SỬA PHIẾU
+  const submitSaveTicket = async () => {
     if (selectedProjectors.length === 0)
       return showToast("Vui lòng chọn ít nhất 1 máy chiếu!", "error");
     const missingDesc = selectedProjectors.some((p) => !p.description.trim());
@@ -98,22 +135,30 @@ export default function MaintenanceTab() {
     setIsSaving(true);
     try {
       const payload = { ...ticketForm, details: selectedProjectors };
-      await projectorService.createTicket(payload);
-      showToast("Đã tạo phiếu bảo trì thành công!");
-      setIsCreateTicketOpen(false);
+
+      if (selectedTicket) {
+        // CẬP NHẬT
+        await projectorService.updateTicket(selectedTicket.id, payload);
+        showToast("Đã cập nhật phiếu bảo trì thành công!");
+      } else {
+        // TẠO MỚI
+        await projectorService.createTicket(payload);
+        showToast("Đã tạo phiếu bảo trì thành công!");
+      }
+
+      setIsTicketModalOpen(false);
       fetchData();
     } catch (error) {
-      showToast("Lỗi khi tạo phiếu!", "error");
+      showToast(error.response?.data?.message || "Lỗi khi lưu phiếu!", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Mở Modal Hoàn Tất và chuẩn bị dữ liệu đánh giá từng máy
+  // MỞ MODAL HOÀN TẤT
   const handleOpenCompleteTicket = (ticket) => {
     setSelectedTicket(ticket);
     setCompletionDate(new Date().toISOString().split("T")[0]);
-    // Mặc định tất cả máy trong phiếu sẽ là sửa thành công (AVAILABLE)
     const defaultResults = ticket.details.map((dt) => ({
       projectorId: dt.projector?.id,
       projectorName: dt.projector?.name,
@@ -135,7 +180,6 @@ export default function MaintenanceTab() {
   const submitCompleteTicket = async () => {
     setIsSaving(true);
     try {
-      // Gửi payload chứa Ngày hoàn tất và Mảng kết quả đánh giá từng máy
       const payload = {
         completionDate: completionDate,
         results: completionResults.map((r) => ({
@@ -154,8 +198,13 @@ export default function MaintenanceTab() {
     }
   };
 
+  // Danh sách máy rảnh, hỏng, hoặc máy ĐANG NẰM TRONG PHIẾU NÀY (để có thể uncheck/check lúc sửa)
   const availableProjectors = allProjectorsList.filter(
-    (p) => p.status === "AVAILABLE" || p.status === "BROKEN",
+    (p) =>
+      p.status === "AVAILABLE" ||
+      p.status === "BROKEN" ||
+      (selectedTicket &&
+        selectedTicket.details.some((dt) => dt.projector.id === p.id)),
   );
 
   return (
@@ -168,16 +217,7 @@ export default function MaintenanceTab() {
             CÁC ĐỢT BẢO TRÌ ĐANG XỬ LÝ ({activeTickets.length})
           </div>
           <button
-            onClick={() => {
-              setTicketForm({
-                ticketCode: "",
-                startDate: new Date().toISOString().split("T")[0],
-                technician: "",
-                generalNote: "",
-              });
-              setSelectedProjectors([]);
-              setIsCreateTicketOpen(true);
-            }}
+            onClick={handleOpenCreate}
             className="bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center hover:bg-amber-700 transition-all shadow-md w-full sm:w-auto justify-center"
           >
             <PenTool size={16} className="mr-2" /> TẠO PHIẾU BẢO TRÌ
@@ -203,12 +243,21 @@ export default function MaintenanceTab() {
                       {ticket.startDate}
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleOpenCompleteTicket(ticket)}
-                    className="px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-bold hover:bg-green-600 hover:text-white transition-colors flex items-center"
-                  >
-                    <CheckCircle size={14} className="mr-1.5" /> HOÀN TẤT
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleOpenEdit(ticket)}
+                      className="px-3 py-1.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-100 transition-colors flex items-center"
+                      title="Sửa phiếu"
+                    >
+                      <Edit size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleOpenCompleteTicket(ticket)}
+                      className="px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-bold hover:bg-green-600 hover:text-white transition-colors flex items-center"
+                    >
+                      <CheckCircle size={14} className="mr-1.5" /> XONG
+                    </button>
+                  </div>
                 </div>
                 <div className="p-4 flex-1">
                   <p className="text-xs font-bold text-slate-500 mb-2 uppercase">
@@ -317,19 +366,29 @@ export default function MaintenanceTab() {
         </div>
       </div>
 
-      {/* MODAL 1: TẠO PHIẾU BẢO TRÌ (CHỌN NHIỀU MÁY) */}
-      {isCreateTicketOpen && (
+      {/* MODAL 1: TẠO HOẶC SỬA PHIẾU BẢO TRÌ (CHỌN NHIỀU MÁY) */}
+      {isTicketModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl animate-in zoom-in-95 flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b bg-amber-600 text-white rounded-t-2xl flex justify-between items-center">
-              <h3 className="font-bold text-lg">Tạo Phiếu Bảo Trì Mới</h3>
-              <button onClick={() => setIsCreateTicketOpen(false)}>
+            <div
+              className={`p-5 border-b text-white rounded-t-2xl flex justify-between items-center ${selectedTicket ? "bg-indigo-600" : "bg-amber-600"}`}
+            >
+              <h3 className="font-bold text-lg flex items-center">
+                {selectedTicket ? (
+                  <Edit className="mr-2" size={20} />
+                ) : (
+                  <PenTool className="mr-2" size={20} />
+                )}
+                {selectedTicket
+                  ? "Cập nhật Phiếu Bảo Trì"
+                  : "Tạo Phiếu Bảo Trì Mới"}
+              </h3>
+              <button onClick={() => setIsTicketModalOpen(false)}>
                 <X size={20} />
               </button>
             </div>
 
             <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-              {/* CỘT TRÁI: THÔNG TIN PHIẾU CHUNG */}
               <div className="w-full md:w-1/3 border-r bg-slate-50 p-5 overflow-y-auto">
                 <h4 className="font-bold text-slate-700 mb-4 text-sm uppercase">
                   1. Thông tin đợt bảo trì
@@ -404,7 +463,6 @@ export default function MaintenanceTab() {
                 </div>
               </div>
 
-              {/* CỘT PHẢI: DANH SÁCH MÁY CHIẾU & LỖI */}
               <div className="w-full md:w-2/3 bg-white p-5 flex flex-col overflow-hidden">
                 <h4 className="font-bold text-slate-700 mb-4 text-sm uppercase flex justify-between items-center">
                   <span>2. Chọn máy chiếu cần bảo trì</span>
@@ -493,18 +551,20 @@ export default function MaintenanceTab() {
 
             <div className="p-4 border-t bg-slate-50 flex gap-3 rounded-b-2xl justify-end">
               <button
-                onClick={() => setIsCreateTicketOpen(false)}
+                onClick={() => setIsTicketModalOpen(false)}
                 className="px-6 py-2.5 border rounded-xl font-bold text-slate-600 hover:bg-slate-100"
               >
                 Hủy
               </button>
               <button
-                onClick={submitCreateTicket}
+                onClick={submitSaveTicket}
                 disabled={isSaving || selectedProjectors.length === 0}
-                className="px-6 py-2.5 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 disabled:opacity-50 flex items-center"
+                className={`px-6 py-2.5 text-white rounded-xl font-bold disabled:opacity-50 flex items-center ${selectedTicket ? "bg-indigo-600 hover:bg-indigo-700" : "bg-amber-600 hover:bg-amber-700"}`}
               >
                 {isSaving ? (
                   <Loader2 size={18} className="animate-spin mr-2" />
+                ) : selectedTicket ? (
+                  "Lưu thay đổi"
                 ) : (
                   "Xác nhận tạo phiếu"
                 )}
@@ -514,7 +574,7 @@ export default function MaintenanceTab() {
         </div>
       )}
 
-      {/* MODAL 2: GHI NHẬN HOÀN TẤT BẢO TRÌ NÂNG CẤP */}
+      {/* MODAL 2: GHI NHẬN HOÀN TẤT BẢO TRÌ */}
       {isCompleteTicketOpen && selectedTicket && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl animate-in zoom-in-95 flex flex-col max-h-[90vh]">

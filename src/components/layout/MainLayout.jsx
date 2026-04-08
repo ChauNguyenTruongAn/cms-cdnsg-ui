@@ -29,13 +29,14 @@ export default function MainLayout() {
   const navItems = [
     { path: "/", label: "Tổng quan", icon: LayoutDashboard },
     { path: "/inventory", label: "Vật tư kho", icon: Package },
-    // { path: "/borrow", label: "Mượn / Trả QR", icon: QrCode },
+    { path: "/borrow", label: "Mượn / Trả QR", icon: QrCode },
     { path: "/transactions", label: "Nhập / Xuất", icon: ArrowRightLeft },
     { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
     { path: "/report", label: "Báo cáo thống kê", icon: FileSpreadsheet },
     { path: "/projectors", label: "Quản lý Máy chiếu", icon: Video },
     { path: "/uniforms", label: "Quản lý Đồng phục", icon: Shirt },
     { path: "/fire-extinguishers", label: "Phòng cháy chữa cháy", icon: Flame },
+
   ];
 
   return (

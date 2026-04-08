@@ -13,6 +13,7 @@ import Uniforms from "./pages/Uniforms";
 import FireExtinguishers from "./pages/FireExtinguishers";
 import NotFound from "./pages/NotFound";
 import Docs from "./pages/Docs";
+import ScanBorrow from "./pages/ScanBorrow";
 function App() {
   return (
     <ToastProvider>
@@ -24,7 +25,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="inventory" element={<Inventory />} />
             <Route path="docs" element={<Docs />} />
-            {/* <Route path="borrow" element={<Borrow />} /> */}
+            <Route path="borrow" element={<Borrow />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="report" element={<Report />} />
             <Route path="projectors" element={<Projectors />} />
@@ -32,6 +33,7 @@ function App() {
             <Route path="fire-extinguishers" element={<FireExtinguishers />} />
             <Route path="*" element={<NotFound />} />
           </Route>
+          <Route path="/scan-borrow" element={<ScanBorrow />} />
         </Routes>
       </BrowserRouter>
     </ToastProvider>

@@ -30,7 +30,7 @@ export default function EditReceiptModal({
   // Form State
   const [formData, setFormData] = useState({
     date: "",
-    invoiceCode: "", // THÊM TRƯỜNG NÀY
+    invoiceCode: "",
     note: "",
     department: "",
     recipient: "",
@@ -44,9 +44,10 @@ export default function EditReceiptModal({
         .then((res) => setMaterials(res.content || []));
 
       // Đổ dữ liệu phiếu cũ vào Form
+      // SỬA LỖI: Đọc dữ liệu từ `receiptCode` vì Backend của bạn lưu mã vào trường này
       setFormData({
         date: isImport ? receiptData.importDate : receiptData.exportDate,
-        invoiceCode: isImport ? receiptData.invoiceCode || "" : "", // MAP DỮ LIỆU TỪ BACKEND
+        invoiceCode: receiptData.receiptCode || "",
         note: receiptData.note || "",
         department: receiptData.department || "",
         recipient: receiptData.recipient || "",
@@ -71,6 +72,8 @@ export default function EditReceiptModal({
 
   const handleSave = async () => {
     if (!formData.date) return showToast("Vui lòng chọn ngày!", "error");
+    if (!formData.invoiceCode)
+      return showToast("Mã phiếu/hóa đơn không được để trống!", "error"); // Validate chống gửi rỗng
     if (!isImport && (!formData.department || !formData.recipient)) {
       return showToast("Vui lòng nhập Phòng ban và Người nhận!", "error");
     }
@@ -86,7 +89,7 @@ export default function EditReceiptModal({
       const payload = isImport
         ? {
             importDate: formData.date,
-            invoiceCode: formData.invoiceCode, // GỬI DATA CẬP NHẬT LÊN API
+            invoiceCode: formData.invoiceCode, // Gửi lên Backend để lưu lại
             note: formData.note,
             importItemRequests: items.map((i) => ({
               materialId: parseInt(i.materialId),
@@ -95,6 +98,7 @@ export default function EditReceiptModal({
           }
         : {
             exportDate: formData.date,
+            invoiceCode: formData.invoiceCode, // Gửi lên Backend để lưu lại
             note: formData.note,
             department: formData.department,
             recipient: formData.recipient,
@@ -169,22 +173,21 @@ export default function EditReceiptModal({
                 />
               </div>
 
-              {isImport && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                    Mã hóa đơn (Tùy chọn)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="VD: HD-001..."
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                    value={formData.invoiceCode}
-                    onChange={(e) =>
-                      setFormData({ ...formData, invoiceCode: e.target.value })
-                    }
-                  />
-                </div>
-              )}
+              {/* SỬA LỖI: Bỏ điều kiện isImport để hiển thị cho cả tab Xuất */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Mã Phiếu / Hóa đơn *
+                </label>
+                <input
+                  type="text"
+                  placeholder="VD: HD-001..."
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                  value={formData.invoiceCode}
+                  onChange={(e) =>
+                    setFormData({ ...formData, invoiceCode: e.target.value })
+                  }
+                />
+              </div>
 
               {!isImport && (
                 <>
@@ -201,7 +204,7 @@ export default function EditReceiptModal({
                       }
                     />
                   </div>
-                  <div className="md:col-span-2">
+                  <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                       Người nhận *
                     </label>

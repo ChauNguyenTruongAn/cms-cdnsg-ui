@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Loader2,
   Calendar,
-  User,
   Eye,
 } from "lucide-react";
 import { uniformService } from "../../services/uniformService";
@@ -19,8 +18,13 @@ export default function UniformImportTab() {
   const { showToast } = useToast();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Phân trang
   const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewData, setViewData] = useState(null);
 
@@ -31,21 +35,26 @@ export default function UniformImportTab() {
     name: "",
   });
 
+  // Reset trang khi đổi bộ lọc
+  useEffect(() => {
+    setPage(0);
+  }, [filters]);
+
   useEffect(() => {
     fetchData();
-  }, [page]);
+  }, [page, size, filters]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Gọi API lấy danh sách nhập kho với các tham số lọc
       const res = await uniformService.getAllImports({
         page,
-        size: 10,
+        size,
         ...filters,
       });
       setData(res.content || []);
       setTotalPages(res.totalPages || 0);
+      setTotalElements(res.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải lịch sử nhập kho!", "error");
     } finally {
@@ -60,7 +69,7 @@ export default function UniformImportTab() {
       )
     ) {
       try {
-        await uniformService.deleteImport(id); //
+        await uniformService.deleteImport(id);
         showToast("Đã xóa phiếu nhập và cập nhật lại tồn kho!");
         fetchData();
       } catch (e) {
@@ -70,7 +79,7 @@ export default function UniformImportTab() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in duration-300">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in duration-300 flex flex-col">
       <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50">
         <h3 className="font-bold text-slate-800 text-lg flex items-center">
           <Calendar className="mr-2 text-emerald-600" size={20} /> Lịch sử Nhập
@@ -88,13 +97,13 @@ export default function UniformImportTab() {
       <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 border-b border-slate-100">
         <input
           type="date"
-          className="p-2 border rounded-lg text-sm"
+          className="p-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
           value={filters.fromDate}
           onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })}
         />
         <input
           type="date"
-          className="p-2 border rounded-lg text-sm"
+          className="p-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
           value={filters.toDate}
           onChange={(e) => setFilters({ ...filters, toDate: e.target.value })}
         />
@@ -106,14 +115,14 @@ export default function UniformImportTab() {
           <input
             type="text"
             placeholder="Tên người giao..."
-            className="w-full pl-9 p-2 border rounded-lg text-sm"
+            className="w-full pl-9 p-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
             value={filters.name}
             onChange={(e) => setFilters({ ...filters, name: e.target.value })}
           />
         </div>
       </div>
 
-      <div className="overflow-x-auto min-h-[400px]">
+      <div className="overflow-x-auto min-h-[400px] flex-1">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 text-slate-400">
             <Loader2 size={32} className="animate-spin text-emerald-600 mb-2" />
@@ -167,31 +176,61 @@ export default function UniformImportTab() {
                   </td>
                 </tr>
               ))}
+              {data.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-12 text-center text-slate-400 italic"
+                  >
+                    Không có dữ liệu phiếu nhập nào.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         )}
       </div>
 
-      {/* Pagination (Tương tự các Tab khác) */}
-      {totalPages > 0 && (
-        <div className="p-4 border-t bg-slate-50 flex items-center justify-between">
-          <span className="text-xs text-slate-500">
-            Trang {page + 1} / {totalPages}
+      {/* THANH PHÂN TRANG */}
+      {!loading && data.length > 0 && (
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm mt-auto">
+          <span className="text-slate-500 font-medium">
+            Hiển thị{" "}
+            <span className="font-bold text-slate-800">{data.length}</span>{" "}
+            trong tổng số{" "}
+            <span className="font-bold text-slate-800">{totalElements}</span>{" "}
+            bản ghi
           </span>
-          <div className="flex space-x-2">
+          <div className="flex items-center gap-2">
+            <span className="mr-2 text-slate-500">Số dòng/trang:</span>
+            <select
+              value={size}
+              onChange={(e) => {
+                setSize(Number(e.target.value));
+                setPage(0);
+              }}
+              className="p-1.5 border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer mr-4"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
             <button
               disabled={page === 0}
-              onClick={() => setPage((p) => p - 1)}
-              className="p-1.5 border rounded bg-white hover:bg-slate-100 disabled:opacity-50"
+              onClick={() => setPage(page - 1)}
+              className="p-2 border border-slate-200 rounded-lg bg-white text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={18} />
             </button>
+            <span className="px-4 py-2 font-bold text-slate-700">
+              Trang {page + 1} / {totalPages || 1}
+            </span>
             <button
               disabled={page >= totalPages - 1}
-              onClick={() => setPage((p) => p + 1)}
-              className="p-1.5 border rounded bg-white hover:bg-slate-100 disabled:opacity-50"
+              onClick={() => setPage(page + 1)}
+              className="p-2 border border-slate-200 rounded-lg bg-white text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={18} />
             </button>
           </div>
         </div>

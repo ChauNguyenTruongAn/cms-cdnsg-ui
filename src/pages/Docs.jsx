@@ -13,6 +13,8 @@ import {
   Eye,
   Layers,
   Plus,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { mediaService } from "../services/mediaService";
 import { useToast } from "../context/ToastContext";
@@ -28,11 +30,15 @@ export default function Docs() {
   const [categories, setCategories] = useState([]);
 
   // State lọc và tìm kiếm
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
+
+  // State Phân trang (Đã nâng cấp)
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(12); // Tùy chọn 12, 24, 48 để khớp với Grid Layout
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
   // State Modals
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -56,15 +62,15 @@ export default function Docs() {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-      setPage(0);
+      setPage(0); // Reset về trang 1 khi tìm kiếm
     }, 500);
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Fetch dữ liệu mỗi khi đổi trang, tìm kiếm hoặc lọc
+  // Fetch dữ liệu mỗi khi đổi trang, đổi số lượng hiển thị, tìm kiếm hoặc lọc
   useEffect(() => {
     fetchData();
-  }, [page, debouncedSearch, filterCategory]);
+  }, [page, size, debouncedSearch, filterCategory]);
 
   // Fetch danh mục một lần khi load trang
   useEffect(() => {
@@ -76,12 +82,15 @@ export default function Docs() {
     try {
       const res = await mediaService.getAllFiles(
         page,
-        12,
+        size,
         debouncedSearch,
         filterCategory,
       );
       setData(res.content || []);
-      setTotalPages(res.totalPages || 0);
+
+      // Xử lý phân trang tương tự các màn hình trước
+      setTotalPages(res.page?.totalPages || res.totalPages || 0);
+      setTotalElements(res.page?.totalElements || res.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải danh sách tài liệu", "error");
     } finally {
@@ -127,7 +136,8 @@ export default function Docs() {
       setIsUploadOpen(false);
       setUploadForm({ file: null, name: "", category: "", description: "" });
       setPreviewUrl(null);
-      fetchData();
+      if (page !== 0) setPage(0);
+      else fetchData();
     } catch (error) {
       showToast("Lỗi khi tải file lên!", "error");
     } finally {
@@ -191,7 +201,7 @@ export default function Docs() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4">
+    <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4 flex flex-col h-full">
       {/* Header & Công cụ */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center w-full md:w-96 bg-slate-50 p-3 rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
@@ -239,105 +249,152 @@ export default function Docs() {
       </div>
 
       {/* Grid hiển thị File */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-          <Loader2 size={32} className="animate-spin text-[#1a237e] mb-3" />
-          <p>Đang tải dữ liệu đám mây...</p>
-        </div>
-      ) : data.length === 0 ? (
-        <div className="bg-white rounded-2xl p-16 text-center border border-dashed border-slate-300">
-          <FolderOpen size={48} className="mx-auto text-slate-300 mb-4" />
-          <p className="text-slate-500 font-medium">
-            Kho lưu trữ đang trống hoặc không có kết quả lọc.
-          </p>
-          <p className="text-sm text-slate-400 mt-1">
-            Hãy tải lên các tài liệu hoặc hình ảnh thiết bị.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-          {data.map((item) => {
-            const isImage = item.fileType?.includes("image");
-            return (
-              <div
-                key={item.id}
-                className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden group flex flex-col"
-              >
-                {/* Thumbnail Area */}
-                <div className="h-44 bg-slate-100 flex items-center justify-center relative overflow-hidden">
-                  {isImage ? (
-                    <img
-                      src={item.fileUrl}
-                      alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <FileText size={48} className="text-indigo-300" />
-                  )}
-                  {/* Overlay Actions */}
-                  <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                    <a
-                      href={item.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="p-2 bg-white text-indigo-600 rounded-full hover:bg-indigo-50 transition-colors shadow-lg"
-                      title="Xem chi tiết"
-                    >
-                      <Eye size={18} />
-                    </a>
-                    <a
-                      href={item.fileUrl}
-                      download
-                      className="p-2 bg-white text-emerald-600 rounded-full hover:bg-emerald-50 transition-colors shadow-lg"
-                      title="Tải xuống"
-                    >
-                      <Download size={18} />
-                    </a>
-                  </div>
-                </div>
-
-                {/* Info Area */}
-                <div className="p-4 flex-1 flex flex-col">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3
-                      className="font-bold text-slate-800 text-sm line-clamp-2"
-                      title={item.name}
-                    >
-                      {item.name}
-                    </h3>
+      <div className="flex-1 flex flex-col">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+            <Loader2 size={32} className="animate-spin text-[#1a237e] mb-3" />
+            <p>Đang tải dữ liệu đám mây...</p>
+          </div>
+        ) : data.length === 0 ? (
+          <div className="bg-white rounded-2xl p-16 text-center border border-dashed border-slate-300">
+            <FolderOpen size={48} className="mx-auto text-slate-300 mb-4" />
+            <p className="text-slate-500 font-medium">
+              Kho lưu trữ đang trống hoặc không có kết quả lọc.
+            </p>
+            <p className="text-sm text-slate-400 mt-1">
+              Hãy tải lên các tài liệu hoặc hình ảnh thiết bị.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+            {data.map((item) => {
+              const isImage = item.fileType?.includes("image");
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden group flex flex-col"
+                >
+                  {/* Thumbnail Area */}
+                  <div className="h-44 bg-slate-100 flex items-center justify-center relative overflow-hidden">
                     {isImage ? (
-                      <ImageIcon
-                        size={16}
-                        className="text-indigo-500 shrink-0 ml-2"
+                      <img
+                        src={item.fileUrl}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <File
-                        size={16}
-                        className="text-slate-500 shrink-0 ml-2"
-                      />
+                      <FileText size={48} className="text-indigo-300" />
                     )}
-                  </div>
-                  <div className="mt-auto">
-                    <span className="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg border border-indigo-100 mb-2">
-                      {item.category}
-                    </span>
-                    <div className="flex justify-between items-center text-xs text-slate-400 border-t border-slate-100 pt-3 mt-1">
-                      <span>{formatBytes(item.fileSize)}</span>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="text-red-400 hover:text-red-600 transition-colors p-1 bg-red-50 rounded"
-                        title="Xóa file"
+                    {/* Overlay Actions */}
+                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <a
+                        href={item.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-2 bg-white text-indigo-600 rounded-full hover:bg-indigo-50 transition-colors shadow-lg"
+                        title="Xem chi tiết"
                       >
-                        <Trash2 size={14} />
-                      </button>
+                        <Eye size={18} />
+                      </a>
+                      <a
+                        href={item.fileUrl}
+                        download
+                        className="p-2 bg-white text-emerald-600 rounded-full hover:bg-emerald-50 transition-colors shadow-lg"
+                        title="Tải xuống"
+                      >
+                        <Download size={18} />
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Info Area */}
+                  <div className="p-4 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3
+                        className="font-bold text-slate-800 text-sm line-clamp-2"
+                        title={item.name}
+                      >
+                        {item.name}
+                      </h3>
+                      {isImage ? (
+                        <ImageIcon
+                          size={16}
+                          className="text-indigo-500 shrink-0 ml-2"
+                        />
+                      ) : (
+                        <File
+                          size={16}
+                          className="text-slate-500 shrink-0 ml-2"
+                        />
+                      )}
+                    </div>
+                    <div className="mt-auto">
+                      <span className="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg border border-indigo-100 mb-2">
+                        {item.category}
+                      </span>
+                      <div className="flex justify-between items-center text-xs text-slate-400 border-t border-slate-100 pt-3 mt-1">
+                        <span>{formatBytes(item.fileSize)}</span>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="text-red-400 hover:text-red-600 transition-colors p-1 bg-red-50 rounded"
+                          title="Xóa file"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+
+        {/* Thanh Phân Trang */}
+        {!loading && data.length > 0 && (
+          <div className="p-4 border border-slate-200 rounded-2xl bg-white shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 text-sm mt-auto">
+            <span className="text-slate-500 font-medium">
+              Hiển thị{" "}
+              <span className="font-bold text-[#1a237e]">{data.length}</span> /
+              tổng{" "}
+              <span className="font-bold text-[#1a237e]">{totalElements}</span>
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="mr-2 text-slate-500">Số tài liệu/trang:</span>
+              <select
+                value={size}
+                onChange={(e) => {
+                  setSize(Number(e.target.value));
+                  setPage(0); // Reset về trang 1
+                }}
+                className="p-1.5 border border-slate-200 rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer mr-4"
+              >
+                <option value={12}>12</option>
+                <option value={24}>24</option>
+                <option value={48}>48</option>
+              </select>
+
+              <button
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                className="p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 disabled:opacity-40 hover:bg-indigo-50 hover:text-[#1a237e] transition-colors"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <span className="px-4 py-2 font-bold text-slate-700">
+                Trang {page + 1} / {totalPages || 1}
+              </span>
+              <button
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                className="p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 disabled:opacity-40 hover:bg-indigo-50 hover:text-[#1a237e] transition-colors"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* MODAL UPLOAD */}
       {isUploadOpen && (

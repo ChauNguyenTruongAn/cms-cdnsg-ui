@@ -7,12 +7,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Scaling
+  Scaling,
 } from "lucide-react";
 import { materialService } from "../services/materialService";
-import { useToast } from "../context/ToastContext"; 
+import { useToast } from "../context/ToastContext";
 import EditMaterialModal from "../components/modals/EditMaterialModal";
-import UnitManagerModal from "../components/modals/UnitManagerModal"; // IMPORT MODAL ĐƠN VỊ
+import UnitManagerModal from "../components/modals/UnitManagerModal";
 
 export default function Inventory() {
   const { showToast } = useToast();
@@ -20,56 +20,61 @@ export default function Inventory() {
   const [materials, setMaterials] = useState([]);
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // States Lọc & Tìm kiếm
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState(""); // STATE LỌC TRẠNG THÁI MỚI
+  const [filterStatus, setFilterStatus] = useState("");
 
-  // State cho phân trang
+  // State cho phân trang (Đã nâng cấp)
   const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10); // Đổi từ const size = 20 thành State
   const [totalPages, setTotalPages] = useState(0);
-  const size = 20; 
+  const [totalElements, setTotalElements] = useState(0); // Thêm tổng số dòng
 
   const [showModal, setShowModal] = useState(false);
   const [newMaterial, setNewMaterial] = useState({ name: "", unit_id: "" });
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [materialToEdit, setMaterialToEdit] = useState(null); 
-  
-  const [isUnitModalOpen, setIsUnitModalOpen] = useState(false); // STATE QUẢN LÝ MODAL ĐƠN VỊ
+  const [materialToEdit, setMaterialToEdit] = useState(null);
+
+  const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-      setPage(0); 
+      setPage(0);
     }, 500);
-    return () => clearTimeout(handler); 
+    return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // CẬP NHẬT: Fetch lại khi đổi filterStatus
+  // Load lại data khi đổi filterStatus HOẶC size
   useEffect(() => {
     fetchData();
-  }, [page, debouncedSearch, filterStatus]);
+  }, [page, size, debouncedSearch, filterStatus]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [matsData, unitsData] = await Promise.all([
-        // Truyền thêm filterStatus vào hàm gọi API
         materialService.getAllMaterials(
           page,
           size,
           "id",
           "desc",
           debouncedSearch,
-          filterStatus 
+          filterStatus,
         ),
         materialService.getAllUnits(),
       ]);
 
       setMaterials(matsData.content || []);
-      setTotalPages(matsData.totalPages || 0);
+      // Spring Data REST thường bọc phân trang trong matsData.page hoặc trả trực tiếp tuỳ backend
+      setTotalPages(matsData.page?.totalPages || matsData.totalPages || 0);
+      setTotalElements(
+        matsData.page?.totalElements || matsData.totalElements || 0,
+      );
+
       setUnits(unitsData || []);
     } catch (error) {
       showToast("Không thể kết nối đến server backend!", "error");
@@ -112,7 +117,7 @@ export default function Inventory() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4">
+    <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4 flex flex-col h-full">
       {/* Thanh công cụ */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
         <div className="flex items-center space-x-4 flex-1 w-full bg-slate-50 p-3 rounded-lg border border-slate-200 focus-within:ring-2 focus-within:ring-[#1a237e]/20 focus-within:border-[#1a237e] transition-all">
@@ -125,12 +130,16 @@ export default function Inventory() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         <div className="flex gap-3 w-full md:w-auto">
           {/* LỌC TRẠNG THÁI */}
-          <select 
+          <select
             className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl outline-none text-sm font-medium w-full md:w-auto focus:ring-2 focus:ring-[#1a237e]/20"
-            value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }}
+            value={filterStatus}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setPage(0);
+            }}
           >
             <option value="">Tất cả trạng thái</option>
             <option value="OK">🟢 Ổn định (&gt;= 5)</option>
@@ -138,8 +147,8 @@ export default function Inventory() {
           </select>
 
           {/* QUẢN LÝ ĐƠN VỊ TÍNH */}
-          <button 
-            onClick={() => setIsUnitModalOpen(true)} 
+          <button
+            onClick={() => setIsUnitModalOpen(true)}
             className="bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center hover:bg-slate-200 whitespace-nowrap border"
           >
             <Scaling size={18} className="mr-2 text-indigo-500" /> ĐƠN VỊ TÍNH
@@ -155,12 +164,14 @@ export default function Inventory() {
         </div>
       </div>
 
-      {/* Bảng dữ liệu (Giữ nguyên cấu trúc của bạn) */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+      {/* Bảng dữ liệu */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col flex-1 min-h-[400px]">
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-400">
             <Loader2 size={40} className="animate-spin text-[#1a237e] mb-4" />
-            <p className="font-medium animate-pulse">Đang tải dữ liệu từ kho...</p>
+            <p className="font-medium animate-pulse">
+              Đang tải dữ liệu từ kho...
+            </p>
           </div>
         ) : (
           <>
@@ -171,20 +182,35 @@ export default function Inventory() {
                     <th className="px-6 py-4 font-semibold">STT</th>
                     <th className="px-6 py-4 font-semibold">Tên Vật Tư</th>
                     <th className="px-6 py-4 font-semibold">Đơn Vị</th>
-                    <th className="px-6 py-4 font-semibold text-center">Số lượng Tồn</th>
-                    <th className="px-6 py-4 font-semibold text-center">Trạng thái</th>
-                    <th className="px-6 py-4 font-semibold text-right">Hành động</th>
+                    <th className="px-6 py-4 font-semibold text-center">
+                      Số lượng Tồn
+                    </th>
+                    <th className="px-6 py-4 font-semibold text-center">
+                      Trạng thái
+                    </th>
+                    <th className="px-6 py-4 font-semibold text-right">
+                      Hành động
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {materials.map((item, idx) => (
-                    <tr key={item.id} className="hover:bg-indigo-50/50 transition-colors group">
+                    <tr
+                      key={item.id}
+                      className="hover:bg-indigo-50/50 transition-colors group"
+                    >
                       <td className="px-6 py-4 text-sm text-slate-400 font-medium">
                         {(page * size + idx + 1).toString().padStart(2, "0")}
                       </td>
-                      <td className="px-6 py-4 text-sm font-bold text-slate-800">{item.name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{item.unit?.name || "-"}</td>
-                      <td className={`px-6 py-4 text-sm text-center font-bold ${item.inventory < 5 ? "text-red-600" : "text-slate-800"}`}>
+                      <td className="px-6 py-4 text-sm font-bold text-slate-800">
+                        {item.name}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">
+                        {item.unit?.name || "-"}
+                      </td>
+                      <td
+                        className={`px-6 py-4 text-sm text-center font-bold ${item.inventory < 5 ? "text-red-600" : "text-slate-800"}`}
+                      >
                         {item.inventory}
                       </td>
                       <td className="px-6 py-4 text-center">
@@ -199,10 +225,21 @@ export default function Inventory() {
                         )}
                       </td>
                       <td className="px-6 py-4 flex space-x-3 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => { setMaterialToEdit(item); setIsEditModalOpen(true); }} className="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors" title="Chỉnh sửa thông tin">
+                        <button
+                          onClick={() => {
+                            setMaterialToEdit(item);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+                          title="Chỉnh sửa thông tin"
+                        >
                           <Edit size={16} />
                         </button>
-                        <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Xóa"
+                        >
                           <Trash2 size={16} />
                         </button>
                       </td>
@@ -210,7 +247,10 @@ export default function Inventory() {
                   ))}
                   {materials.length === 0 && (
                     <tr>
-                      <td colSpan="6" className="px-6 py-12 text-center text-slate-500 text-sm">
+                      <td
+                        colSpan="6"
+                        className="px-6 py-12 text-center text-slate-500 text-sm"
+                      >
                         Không tìm thấy vật tư nào phù hợp.
                       </td>
                     </tr>
@@ -219,17 +259,51 @@ export default function Inventory() {
               </table>
             </div>
 
-            {/* Phân trang */}
-            {totalPages > 0 && (
-              <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-                <span className="text-sm text-slate-500 font-medium">
-                  Trang {page + 1} / {totalPages}
+            {/* Phân trang Nâng cao (Đồng bộ style với các màn hình khác) */}
+            {!loading && materials.length > 0 && (
+              <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm mt-auto">
+                <span className="text-slate-500 font-medium">
+                  Hiển thị{" "}
+                  <span className="font-bold text-[#1a237e]">
+                    {materials.length}
+                  </span>{" "}
+                  / tổng{" "}
+                  <span className="font-bold text-[#1a237e]">
+                    {totalElements}
+                  </span>
                 </span>
-                <div className="flex space-x-2">
-                  <button disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))} className="p-2 bg-white border border-slate-200 rounded-md disabled:opacity-50 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center gap-2">
+                  <span className="mr-2 text-slate-500">Số dòng/trang:</span>
+                  <select
+                    value={size}
+                    onChange={(e) => {
+                      setSize(Number(e.target.value));
+                      setPage(0); // Reset về trang 1 khi đổi số dòng
+                    }}
+                    className="p-1.5 border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer mr-4"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+
+                  <button
+                    disabled={page === 0}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    className="p-2 border border-slate-200 rounded-lg bg-white text-slate-600 disabled:opacity-40 hover:bg-indigo-50 hover:text-[#1a237e] transition-colors"
+                  >
                     <ChevronLeft size={18} />
                   </button>
-                  <button disabled={page >= totalPages - 1} onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} className="p-2 bg-white border border-slate-200 rounded-md disabled:opacity-50 hover:bg-slate-100 transition-colors">
+                  <span className="px-4 py-2 font-bold text-slate-700">
+                    Trang {page + 1} / {totalPages || 1}
+                  </span>
+                  <button
+                    disabled={page >= totalPages - 1}
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages - 1, p + 1))
+                    }
+                    className="p-2 border border-slate-200 rounded-lg bg-white text-slate-600 disabled:opacity-40 hover:bg-indigo-50 hover:text-[#1a237e] transition-colors"
+                  >
                     <ChevronRight size={18} />
                   </button>
                 </div>
@@ -248,32 +322,60 @@ export default function Inventory() {
             </h3>
             <div className="space-y-5">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">Tên vật tư</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">
+                  Tên vật tư
+                </label>
                 <input
-                  type="text" placeholder="Nhập tên vật tư..."
+                  type="text"
+                  placeholder="Nhập tên vật tư..."
                   className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a237e]/50"
-                  value={newMaterial.name} onChange={(e) => setNewMaterial({ ...newMaterial, name: e.target.value })}
+                  value={newMaterial.name}
+                  onChange={(e) =>
+                    setNewMaterial({ ...newMaterial, name: e.target.value })
+                  }
                 />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider flex justify-between">
                   <span>Đơn vị tính</span>
-                  {units.length === 0 && <span className="text-red-500">Chưa có đơn vị!</span>}
+                  {units.length === 0 && (
+                    <span className="text-red-500">Chưa có đơn vị!</span>
+                  )}
                 </label>
                 <select
                   className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a237e]/50"
-                  value={newMaterial.unit_id} onChange={(e) => setNewMaterial({ ...newMaterial, unit_id: e.target.value })}
+                  value={newMaterial.unit_id}
+                  onChange={(e) =>
+                    setNewMaterial({ ...newMaterial, unit_id: e.target.value })
+                  }
                 >
-                  <option value="" disabled>-- Chọn đơn vị tính --</option>
-                  {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  <option value="" disabled>
+                    -- Chọn đơn vị tính --
+                  </option>
+                  {units.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
                 </select>
-                {units.length === 0 && <p className="text-[11px] text-amber-600 mt-2 italic">*Hãy đóng cửa sổ này và bấm "QUẢN LÝ ĐƠN VỊ TÍNH" để thêm đơn vị trước.</p>}
+                {units.length === 0 && (
+                  <p className="text-[11px] text-amber-600 mt-2 italic">
+                    *Hãy đóng cửa sổ này và bấm "QUẢN LÝ ĐƠN VỊ TÍNH" để thêm
+                    đơn vị trước.
+                  </p>
+                )}
               </div>
               <div className="flex space-x-3 pt-6 border-t border-slate-100 mt-2">
-                <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors"
+                >
                   Hủy bỏ
                 </button>
-                <button onClick={handleAddMaterial} className="flex-1 px-4 py-3.5 bg-[#1a237e] text-white rounded-xl font-bold text-sm hover:bg-[#0d145e] shadow-lg transition-all">
+                <button
+                  onClick={handleAddMaterial}
+                  className="flex-1 px-4 py-3.5 bg-[#1a237e] text-white rounded-xl font-bold text-sm hover:bg-[#0d145e] shadow-lg transition-all"
+                >
                   Lưu Vật Tư
                 </button>
               </div>
@@ -285,18 +387,21 @@ export default function Inventory() {
       {/* CÁC MODAL KHÁC */}
       <EditMaterialModal
         isOpen={isEditModalOpen}
-        onClose={() => { setIsEditModalOpen(false); setMaterialToEdit(null); }}
-        material={materialToEdit} 
-        units={units} 
-        onSave={fetchData} 
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setMaterialToEdit(null);
+        }}
+        material={materialToEdit}
+        units={units}
+        onSave={fetchData}
       />
 
-      <UnitManagerModal 
-        isOpen={isUnitModalOpen} 
+      <UnitManagerModal
+        isOpen={isUnitModalOpen}
         onClose={() => {
-            setIsUnitModalOpen(false);
-            fetchData(); // Cập nhật lại list Unit ngoài dropdown vật tư khi đóng modal
-        }} 
+          setIsUnitModalOpen(false);
+          fetchData();
+        }}
       />
     </div>
   );

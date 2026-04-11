@@ -57,17 +57,23 @@ export const projectorService = {
     axiosClient.get(`/projector-loans/projector/${projectorId}`),
 
   // --- BẢO TRÌ ---
-  getAllTickets: () => axiosClient.get("/projector-maintenances"),
-  createTicket: (data) => axiosClient.post("/projector-maintenances", data),
-  completeTicket: (id, completionDate) =>
-    axiosClient.post(`/projector-maintenances/${id}/complete`, null, {
-      params: { completionDate },
+  // CẬP NHẬT: Thêm tham số phân trang
+  getAllTickets: (page = 0, size = 10, keyword = "", status = "") =>
+    axiosClient.get("/projector-maintenances", {
+      params: { page, size, keyword, status: status || null },
     }),
-  getMaintenanceHistory: (projectorId) =>
-    axiosClient.get(`/projector-maintenances/projector/${projectorId}`),
-  completeTicket: (id, payload) =>
-    axiosClient.post(`/projector-maintenances/${id}/complete`, payload),
-
-  updateTicket: (id, payload) =>
-    axiosClient.put(`/projector-maintenances/${id}`, payload),
+  createTicket: (data) => axiosClient.post("/projector-maintenances", data),
+  completeTicket: async (id, payload) => {
+    const response = await axiosClient.post(
+      `/projector-maintenances/${id}/complete`,
+      payload,
+    );
+    return response.data;
+  },
+  updateTicket: (id, data) =>
+    axiosClient.put(`/projector-maintenances/${id}`, data),
+  updateTicketItemStatus: (itemId, status) =>
+    axiosClient.post(`/projector-maintenances/${itemId}/complete`, null, {
+      params: { status },
+    }),
 };

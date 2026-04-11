@@ -6,6 +6,7 @@ import {
   Edit,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { receiptService } from "../../services/receiptService";
 import { useToast } from "../../context/ToastContext";
@@ -20,30 +21,34 @@ export default function ImportTab() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // States phân trang
+  // States phân trang (Đã nâng cấp)
   const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
   // States Modals
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [viewData, setViewData] = useState(null);
 
+  // Lắng nghe thay đổi của page và size
   useEffect(() => {
     fetchData();
-  }, [page]);
+  }, [page, size]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const res = await receiptService.getAllImports({
         page,
-        size: 10,
+        size, // Truyền size động
         sortBy: "id",
         direction: "desc",
       });
       setData(res.content || []);
-      setTotalPages(res.totalPages || 0);
+      setTotalPages(res.page?.totalPages || res.totalPages || 0);
+      setTotalElements(res.page?.totalElements || res.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải phiếu nhập", "error");
     } finally {
@@ -71,28 +76,28 @@ export default function ImportTab() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in duration-300">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-[500px] animate-in fade-in duration-300">
       <div className="p-6 border-b border-slate-100 flex justify-between items-center">
         <h3 className="font-bold text-slate-800 text-lg">
           Lịch sử Phiếu Nhập Kho
         </h3>
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="bg-[#1a237e] text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center hover:bg-[#0d145e] transition-colors shadow-md transform active:scale-95"
+          className="bg-[#1a237e] text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center hover:bg-[#0d145e] transition-colors shadow-md transform active:scale-95"
         >
           <Plus size={18} className="mr-2" /> TẠO PHIẾU NHẬP
         </button>
       </div>
 
-      <div className="overflow-x-auto min-h-[400px]">
+      <div className="overflow-x-auto flex-1 flex flex-col">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a237e] mb-3"></div>
-            <p>Đang tải dữ liệu phiếu nhập...</p>
+          <div className="flex flex-col items-center justify-center flex-1 text-slate-400 py-20">
+            <Loader2 size={32} className="animate-spin text-[#1a237e] mb-3" />
+            <p className="font-medium">Đang tải dữ liệu phiếu nhập...</p>
           </div>
         ) : (
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 uppercase text-xs">
+            <thead className="bg-slate-50 text-slate-500 uppercase text-xs border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4 font-bold">Mã Phiếu</th>
                 <th className="px-6 py-4 font-bold">Ngày Nhập</th>
@@ -181,23 +186,44 @@ export default function ImportTab() {
         )}
       </div>
 
-      {totalPages > 0 && (
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-          <span className="text-sm text-slate-500 font-medium">
-            Trang {page + 1} / {totalPages}
+      {/* PHÂN TRANG NÂNG CAO */}
+      {!loading && data.length > 0 && (
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm mt-auto">
+          <span className="text-slate-500 font-medium">
+            Hiển thị{" "}
+            <span className="font-bold text-[#1a237e]">{data.length}</span> /
+            tổng{" "}
+            <span className="font-bold text-[#1a237e]">{totalElements}</span>
           </span>
-          <div className="flex space-x-2">
+          <div className="flex items-center gap-2">
+            <span className="mr-2 text-slate-500">Số dòng/trang:</span>
+            <select
+              value={size}
+              onChange={(e) => {
+                setSize(Number(e.target.value));
+                setPage(0); // Về trang 1 khi đổi số dòng
+              }}
+              className="p-1.5 border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer mr-4"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+
             <button
               disabled={page === 0}
-              onClick={() => setPage((p) => p - 1)}
-              className="p-2 bg-white border rounded-md disabled:opacity-50 hover:bg-slate-100"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              className="p-2 bg-white border border-slate-200 rounded-lg disabled:opacity-50 hover:bg-indigo-50 hover:text-[#1a237e] transition-colors shadow-sm text-slate-600"
             >
               <ChevronLeft size={18} />
             </button>
+            <span className="px-4 py-2 font-bold text-slate-700">
+              Trang {page + 1} / {totalPages || 1}
+            </span>
             <button
               disabled={page >= totalPages - 1}
-              onClick={() => setPage((p) => p + 1)}
-              className="p-2 bg-white border rounded-md disabled:opacity-50 hover:bg-slate-100"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              className="p-2 bg-white border border-slate-200 rounded-lg disabled:opacity-50 hover:bg-indigo-50 hover:text-[#1a237e] transition-colors shadow-sm text-slate-600"
             >
               <ChevronRight size={18} />
             </button>

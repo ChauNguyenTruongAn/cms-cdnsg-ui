@@ -2,8 +2,24 @@ import axiosClient from "./axiosClient";
 
 export const fireExtinguisherService = {
   // --- QUẢN LÝ BÌNH ---
-  getAll: (page = 0, size = 10, keyword = "") =>
-    axiosClient.get("/fire-extinguishers", { params: { page, size, keyword } }),
+  getAll: (
+    page = 0,
+    size = 10,
+    keyword = "",
+    zoneId = "",
+    type = "",
+    weight = "",
+  ) =>
+    axiosClient.get("/fire-extinguishers", {
+      params: {
+        page,
+        size,
+        keyword,
+        zoneId: zoneId || null,
+        type: type || null,
+        weight: weight || null,
+      },
+    }),
 
   getStats: () => axiosClient.get("/fire-extinguishers/stats"),
 
@@ -35,11 +51,10 @@ export const fireExtinguisherService = {
   createZone: (data) => axiosClient.post("/zones", data),
   updateZone: (id, data) => axiosClient.put(`/zones/${id}`, data),
   deleteZone: (id) => axiosClient.delete(`/zones/${id}`),
-  
+
   // --- QUẢN LÝ VỊ TRÍ (LOCATION) ---
   getLocationsByZone: (zoneId) => axiosClient.get(`/locations/zone/${zoneId}`),
   createLocation: (data) => axiosClient.post("/locations", data),
   updateLocation: (id, data) => axiosClient.put(`/locations/${id}`, data),
   deleteLocation: (id) => axiosClient.delete(`/locations/${id}`),
-
 };

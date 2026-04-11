@@ -68,6 +68,7 @@ export default function ProjectorHistoryModal({ isOpen, onClose, projector }) {
               </div>
 
               {/* LỊCH SỬ BẢO TRÌ */}
+              {/* LỊCH SỬ BẢO TRÌ */}
               <div className="flex-1 bg-white p-4 rounded-xl shadow-sm border">
                 <h4 className="font-bold text-amber-700 flex items-center mb-4">
                   <Wrench size={18} className="mr-2" /> Lịch sử bảo trì
@@ -78,10 +79,17 @@ export default function ProjectorHistoryModal({ isOpen, onClose, projector }) {
                       key={m.id}
                       className="text-sm border-l-4 border-amber-500 pl-3 py-1"
                     >
-                      <p className="font-bold">{m.maintenanceDate}</p>
-                      <p className="text-xs text-slate-600">
-                        {m.description} - {m.technician}
-                      </p>
+                      <div
+                        key={m.id}
+                        className="text-sm border-l-4 border-amber-500 pl-3 py-1"
+                      >
+                        {/* Ngày lấy từ ticket cha của detail đó */}
+                        <p className="font-bold">{m.ticket?.startDate}</p>
+                        <p className="text-xs text-slate-600">
+                          {m.description || "Bảo trì định kỳ"} -{" "}
+                          {m.ticket?.technician}
+                        </p>
+                      </div>
                     </div>
                   ))}
                   {maintenances.length === 0 && (

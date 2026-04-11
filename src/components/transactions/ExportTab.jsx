@@ -26,16 +26,18 @@ export default function ExportTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // State phân trang
+  // State phân trang (Đã nâng cấp)
   const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
   // State Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editModalData, setEditModalData] = useState(null);
   const [viewModalData, setViewModalData] = useState(null);
 
-  // Debounce tìm kiếm: Đợi người dùng gõ xong 500ms mới gọi API
+  // Debounce tìm kiếm
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm);
@@ -44,24 +46,24 @@ export default function ExportTab() {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Fetch dữ liệu mỗi khi đổi trang hoặc từ khóa tìm kiếm thay đổi
+  // Fetch dữ liệu mỗi khi đổi trang, đổi size hoặc từ khóa
   useEffect(() => {
     fetchData();
-  }, [page, debouncedSearch]);
+  }, [page, size, debouncedSearch]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Gọi API lấy danh sách Phiếu Xuất truyền kèm keyword
       const res = await receiptService.getAllExports({
         page,
-        size: 10,
+        size, // Truyền size động
         sortBy: "id",
         direction: "desc",
-        keyword: debouncedSearch, // Truyền từ khóa tìm kiếm xuống Backend
+        keyword: debouncedSearch,
       });
       setData(res.content || []);
-      setTotalPages(res.totalPages || 0);
+      setTotalPages(res.page?.totalPages || res.totalPages || 0);
+      setTotalElements(res.page?.totalElements || res.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải danh sách phiếu xuất", "error");
     } finally {
@@ -89,8 +91,8 @@ export default function ExportTab() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-125">
-      {/* THANH CÔNG CỤ (TÌM KIẾM & NÚT TẠO) */}
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-[500px]">
+      {/* THANH CÔNG CỤ */}
       <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center w-full md:w-96 bg-slate-50 p-3 rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-amber-500/50 transition-all">
           <Search className="text-slate-400 mr-2" size={20} />
@@ -112,9 +114,9 @@ export default function ExportTab() {
       </div>
 
       {/* BẢNG DỮ LIỆU */}
-      <div className="overflow-x-auto flex-1">
+      <div className="overflow-x-auto flex-1 flex flex-col">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+          <div className="flex flex-col items-center justify-center flex-1 text-slate-400 py-20">
             <Loader2 size={32} className="animate-spin text-amber-500 mb-3" />
             <p className="animate-pulse font-medium">
               Đang tải dữ liệu phiếu xuất...
@@ -122,7 +124,7 @@ export default function ExportTab() {
           </div>
         ) : (
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 uppercase text-xs">
+            <thead className="bg-slate-50 text-slate-500 uppercase text-xs border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4 font-bold">Mã Phiếu / Hóa Đơn</th>
                 <th className="px-6 py-4 font-bold">Ngày Xuất</th>
@@ -217,24 +219,44 @@ export default function ExportTab() {
         )}
       </div>
 
-      {/* PHÂN TRANG */}
-      {totalPages > 0 && (
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-          <span className="text-sm font-medium text-slate-500">
-            Trang {page + 1} / {totalPages}
+      {/* PHÂN TRANG NÂNG CAO */}
+      {!loading && data.length > 0 && (
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm mt-auto">
+          <span className="text-slate-500 font-medium">
+            Hiển thị{" "}
+            <span className="font-bold text-amber-700">{data.length}</span> /
+            tổng{" "}
+            <span className="font-bold text-amber-700">{totalElements}</span>
           </span>
-          <div className="flex space-x-2">
+          <div className="flex items-center gap-2">
+            <span className="mr-2 text-slate-500">Số dòng/trang:</span>
+            <select
+              value={size}
+              onChange={(e) => {
+                setSize(Number(e.target.value));
+                setPage(0);
+              }}
+              className="p-1.5 border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer mr-4"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+
             <button
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
-              className="p-2 bg-white border border-slate-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors shadow-sm text-slate-600"
+              className="p-2 bg-white border border-slate-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-amber-50 hover:text-amber-600 transition-colors shadow-sm text-slate-600"
             >
               <ChevronLeft size={18} />
             </button>
+            <span className="px-4 py-2 font-bold text-slate-700">
+              Trang {page + 1} / {totalPages || 1}
+            </span>
             <button
               disabled={page >= totalPages - 1}
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              className="p-2 bg-white border border-slate-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors shadow-sm text-slate-600"
+              className="p-2 bg-white border border-slate-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-amber-50 hover:text-amber-600 transition-colors shadow-sm text-slate-600"
             >
               <ChevronRight size={18} />
             </button>

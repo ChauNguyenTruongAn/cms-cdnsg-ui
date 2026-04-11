@@ -1,18 +1,39 @@
-import React, { useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { QRCodeSVG } from "qrcode.react";
+import React, { useState, useEffect } from "react"; // Thêm useEffect
+import { useSearchParams, useNavigate } from "react-router-dom"; // Thêm useNavigate
 import { CheckCircle2, Loader2, Mail, QrCode } from "lucide-react";
 import { borrowReturnService } from "../services/borrowReturnService";
 import { useToast } from "../context/ToastContext";
 
 export default function ScanBorrow() {
   const [searchParams] = useSearchParams();
-  const borrowCode = searchParams.get("code"); // Lấy mã từ URL: ?code=M-XXXX
+  const borrowCode = searchParams.get("code");
   const { showToast } = useToast();
+
+  // Khởi tạo navigate
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(3); // State đếm ngược 3 giây
+
+  // Tự động chuyển hướng sau khi thành công
+  useEffect(() => {
+    if (isSuccess) {
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            navigate("/borrow"); // Chuyển hướng về trang mượn đồ (thay đổi route này nếu cần)
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [isSuccess, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,12 +70,30 @@ export default function ScanBorrow() {
         <div className="p-6">
           {isSuccess ? (
             <div className="text-center space-y-4 py-6">
-              <CheckCircle2 size={60} className="mx-auto text-green-500" />
+              <CheckCircle2
+                size={60}
+                className="mx-auto text-green-500 animate-in zoom-in duration-500"
+              />
               <h3 className="text-xl font-bold text-slate-800">Thành công!</h3>
               <p className="text-slate-500 text-sm">
                 Đã xác nhận mượn đồ. Vui lòng kiểm tra email <b>{email}</b> để
                 nhận Mã Trả Đồ nhé!
               </p>
+
+              <div className="pt-4 border-t border-slate-100 mt-6">
+                <p className="text-xs text-slate-400 mb-3">
+                  Tự động quay về sau{" "}
+                  <span className="font-bold text-[#1a237e]">{countdown}s</span>
+                  ...
+                </p>
+                {/* Nút quay về thủ công */}
+                <button
+                  onClick={() => navigate("/borrow")}
+                  className="w-full py-3 bg-indigo-50 hover:bg-indigo-100 text-[#1a237e] rounded-xl font-bold transition-colors"
+                >
+                  Quay về trang quản lý ngay
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">

@@ -19,7 +19,9 @@ export default function UniformCatalogTab() {
 
   // States Phân trang & Tìm kiếm
   const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -40,19 +42,19 @@ export default function UniformCatalogTab() {
 
   useEffect(() => {
     fetchData();
-  }, [page, debouncedSearch]);
+  }, [page, size, debouncedSearch]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Gọi API với phân trang và từ khóa
       const res = await uniformService.getAllUniforms(
         page,
-        10,
+        size,
         debouncedSearch,
       );
       setData(res.content || []);
       setTotalPages(res.totalPages || 0);
+      setTotalElements(res.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải danh mục đồng phục", "error");
     } finally {
@@ -109,7 +111,6 @@ export default function UniformCatalogTab() {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      {/* Search & Action Bar */}
       <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="relative w-full md:w-96">
           <Search
@@ -132,8 +133,7 @@ export default function UniformCatalogTab() {
         </button>
       </div>
 
-      {/* Table Content */}
-      <div className="overflow-x-auto min-h-[400px]">
+      <div className="overflow-x-auto min-h-[400px] flex flex-col">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 text-slate-400">
             <Loader2 size={32} className="animate-spin text-indigo-600 mb-3" />
@@ -208,26 +208,46 @@ export default function UniformCatalogTab() {
         )}
       </div>
 
-      {/* Pagination */}
-      {totalPages > 0 && (
-        <div className="p-4 border-t bg-slate-50 flex items-center justify-between">
-          <span className="text-xs text-slate-500 font-medium">
-            Trang {page + 1} / {totalPages}
+      {/* THANH PHÂN TRANG */}
+      {!loading && data.length > 0 && (
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm mt-auto">
+          <span className="text-slate-500 font-medium">
+            Hiển thị{" "}
+            <span className="font-bold text-slate-800">{data.length}</span>{" "}
+            trong tổng số{" "}
+            <span className="font-bold text-slate-800">{totalElements}</span>{" "}
+            bản ghi
           </span>
-          <div className="flex space-x-2">
+          <div className="flex items-center gap-2">
+            <span className="mr-2 text-slate-500">Số dòng/trang:</span>
+            <select
+              value={size}
+              onChange={(e) => {
+                setSize(Number(e.target.value));
+                setPage(0);
+              }}
+              className="p-1.5 border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer mr-4"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
             <button
               disabled={page === 0}
-              onClick={() => setPage((p) => p - 1)}
-              className="p-1.5 bg-white border rounded-md hover:bg-slate-100 disabled:opacity-50 transition-colors"
+              onClick={() => setPage(page - 1)}
+              className="p-2 border border-slate-200 rounded-lg bg-white text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={18} />
             </button>
+            <span className="px-4 py-2 font-bold text-slate-700">
+              Trang {page + 1} / {totalPages || 1}
+            </span>
             <button
               disabled={page >= totalPages - 1}
-              onClick={() => setPage((p) => p + 1)}
-              className="p-1.5 bg-white border rounded-md hover:bg-slate-100 disabled:opacity-50 transition-colors"
+              onClick={() => setPage(page + 1)}
+              className="p-2 border border-slate-200 rounded-lg bg-white text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={18} />
             </button>
           </div>
         </div>

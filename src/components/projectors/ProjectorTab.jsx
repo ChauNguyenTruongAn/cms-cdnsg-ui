@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { projectorService } from "../../services/projectorService";
 import { useToast } from "../../context/ToastContext";
-import ProjectorHistoryModal from "../modals/ProjectorHistoryModal"; // Import Modal lịch sử
+import ProjectorHistoryModal from "../modals/ProjectorHistoryModal";
 
 const statusConfig = {
   AVAILABLE: {
@@ -36,20 +36,24 @@ export default function ProjectorTab() {
   const [loading, setLoading] = useState(true);
 
   const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editData, setEditData] = useState(null);
-  const [formData, setFormData] = useState({ name: "", serialNumber: "" });
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [selectedProjector, setSelectedProjector] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Thêm State để quản lý Modal xem lịch sử
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [selectedProjectorHistory, setSelectedProjectorHistory] =
-    useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    serialNumber: "",
+    note: "",
+  });
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -59,17 +63,20 @@ export default function ProjectorTab() {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // SỬA LỖI LỌC: Thêm filterStatus vào mảng phụ thuộc
+  useEffect(() => {
+    setPage(0);
+  }, [filterStatus, size]);
+
   useEffect(() => {
     fetchData();
-  }, [page, debouncedSearch, filterStatus]);
+  }, [page, size, debouncedSearch, filterStatus]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const res = await projectorService.getAllProjectors(
         page,
-        10,
+        size,
         "id",
         "desc",
         debouncedSearch,
@@ -77,6 +84,7 @@ export default function ProjectorTab() {
       );
       setData(res.content || []);
       setTotalPages(res.totalPages || 0);
+      setTotalElements(res.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải danh sách máy chiếu", "error");
     } finally {
@@ -84,28 +92,17 @@ export default function ProjectorTab() {
     }
   };
 
-  const handleOpenModal = (item = null) => {
-    setEditData(item);
-    setFormData(
-      item
-        ? { name: item.name, serialNumber: item.serialNumber }
-        : { name: "", serialNumber: "" },
-    );
-    setIsModalOpen(true);
-  };
-
   const handleSave = async () => {
     if (!formData.name || !formData.serialNumber)
-      return showToast("Vui lòng nhập đủ thông tin!", "error");
+      return showToast("Vui lòng nhập đủ thông tin bắt buộc!", "error");
     setIsSaving(true);
     try {
-      if (editData) {
-        await projectorService.updateProjector(editData.id, formData);
+      if (selectedProjector) {
+        await projectorService.updateProjector(selectedProjector.id, formData);
         showToast("Cập nhật thành công!");
       } else {
         await projectorService.createProjector(formData);
         showToast("Thêm mới thành công!");
-        setPage(0);
       }
       setIsModalOpen(false);
       fetchData();
@@ -123,182 +120,204 @@ export default function ProjectorTab() {
     if (window.confirm("Bạn có chắc chắn muốn xóa máy chiếu này?")) {
       try {
         await projectorService.deleteProjector(id);
-        showToast("Đã xóa máy chiếu!");
+        showToast("Đã xóa thành công!");
         fetchData();
       } catch (error) {
-        showToast("Không thể xóa do bị ràng buộc dữ liệu.", "error");
+        showToast(
+          "Không thể xóa do máy chiếu đang có dữ liệu liên quan.",
+          "error",
+        );
       }
     }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full animate-in fade-in duration-300">
       <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex items-center w-full md:w-96 bg-slate-50 p-3 rounded-lg border border-slate-200">
-          <Search className="text-slate-400 mr-2" size={20} />
-          <input
-            type="text"
-            placeholder="Tìm kiếm theo Tên hoặc Số Serial..."
-            className="bg-transparent border-none outline-none w-full text-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Tên máy, Serial..."
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1a237e] outline-none transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
           <select
-            className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg outline-none text-sm font-medium"
+            className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-[#1a237e] text-sm text-slate-600 font-medium"
             value={filterStatus}
-            onChange={(e) => {
-              setFilterStatus(e.target.value);
-              setPage(0);
-            }}
+            onChange={(e) => setFilterStatus(e.target.value)}
           >
             <option value="">Tất cả trạng thái</option>
             <option value="AVAILABLE">Sẵn sàng</option>
-            <option value="BORROWED">Đang cho mượn</option>
+            <option value="BORROWED">Đang mượn</option>
             <option value="UNDER_MAINTENANCE">Đang bảo trì</option>
             <option value="BROKEN">Đã hỏng</option>
           </select>
         </div>
         <button
-          onClick={() => handleOpenModal()}
-          className="bg-[#1a237e] text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center hover:bg-[#0d145e]"
+          onClick={() => {
+            setSelectedProjector(null);
+            setFormData({ name: "", serialNumber: "", note: "" });
+            setIsModalOpen(true);
+          }}
+          className="bg-[#1a237e] text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center hover:bg-[#0d145e] w-full md:w-auto justify-center shadow-md transition-transform active:scale-95"
         >
-          <Plus size={18} className="mr-2" /> THÊM MÁY CHIẾU
+          <Plus size={18} className="mr-2" /> THÊM MÁY MỚI
         </button>
       </div>
 
-      <div className="overflow-x-auto min-h-[400px]">
+      <div className="overflow-x-auto min-h-[400px] flex-1 flex flex-col">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 text-slate-400">
             <Loader2 size={32} className="animate-spin text-[#1a237e] mb-3" />
-            <p>Đang tải dữ liệu...</p>
+            <p>Đang tải danh sách...</p>
           </div>
         ) : (
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 uppercase text-xs">
+            <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold tracking-wider">
               <tr>
-                <th className="px-6 py-4">ID</th>
                 <th className="px-6 py-4">Tên Máy Chiếu</th>
                 <th className="px-6 py-4">Số Serial</th>
                 <th className="px-6 py-4">Trạng thái</th>
-                <th className="px-6 py-4 text-right">Hành động</th>
+                <th className="px-6 py-4 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {data.map((item, idx) => {
-                const status =
-                  statusConfig[item.status] || statusConfig.AVAILABLE;
+              {data.map((item) => {
+                const status = statusConfig[item.status];
                 return (
                   <tr
                     key={item.id}
-                    className="hover:bg-slate-50 transition-colors group"
+                    className="hover:bg-slate-50/80 transition-colors group"
                   >
-                    <td className="px-6 py-4 text-slate-500 font-medium">
-                      {page * 10 + idx + 1}
-                    </td>
-                    <td className="px-6 py-4 font-bold text-slate-800">
+                    <td className="px-6 py-4 font-bold text-[#1a237e]">
                       {item.name}
                     </td>
-                    <td className="px-6 py-4 font-mono text-slate-600">
+                    <td className="px-6 py-4 text-slate-600 font-mono">
                       {item.serialNumber}
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`border px-2.5 py-1 rounded text-[10px] font-bold ${status.color}`}
+                        className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border ${status.color}`}
                       >
                         {status.label}
                       </span>
                     </td>
-                    <td className="px-6 py-4 flex justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {/* NÚT XEM LỊCH SỬ TỪNG MÁY */}
+                    <td className="px-6 py-4 flex justify-end space-x-2">
                       <button
                         onClick={() => {
-                          setSelectedProjectorHistory(item);
+                          setSelectedProjector(item);
                           setIsHistoryOpen(true);
                         }}
-                        className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-lg"
-                        title="Xem lịch sử"
+                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Lịch sử"
                       >
-                        <Eye size={16} />
+                        <Eye size={18} />
                       </button>
                       <button
-                        onClick={() => handleOpenModal(item)}
-                        className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg"
+                        onClick={() => {
+                          setSelectedProjector(item);
+                          setFormData({
+                            name: item.name,
+                            serialNumber: item.serialNumber,
+                            note: item.note || "",
+                          });
+                          setIsModalOpen(true);
+                        }}
+                        className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
                         title="Sửa"
                       >
-                        <Edit size={16} />
+                        <Edit size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg"
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Xóa"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                       </button>
                     </td>
                   </tr>
                 );
               })}
-              {data.length === 0 && (
-                <tr>
-                  <td
-                    colSpan="5"
-                    className="px-6 py-12 text-center text-slate-400"
-                  >
-                    Không tìm thấy máy chiếu nào.
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         )}
       </div>
 
-      {totalPages > 0 && (
-        <div className="p-4 border-t bg-slate-50 flex items-center justify-between">
-          <span className="text-sm text-slate-500">
-            Trang {page + 1} / {totalPages}
+      {/* THANH PHÂN TRANG */}
+      {!loading && data.length > 0 && (
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm mt-auto">
+          <span className="text-slate-500 font-medium">
+            Hiển thị{" "}
+            <span className="font-bold text-slate-800">{data.length}</span>{" "}
+            trong tổng số{" "}
+            <span className="font-bold text-slate-800">{totalElements}</span>{" "}
+            bản ghi
           </span>
-          <div className="flex space-x-2">
+          <div className="flex items-center gap-2">
+            <span className="mr-2 text-slate-500">Số dòng/trang:</span>
+            <select
+              value={size}
+              onChange={(e) => {
+                setSize(Number(e.target.value));
+                setPage(0);
+              }}
+              className="p-1.5 border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-[#1a237e]/50 cursor-pointer mr-4"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
             <button
               disabled={page === 0}
-              onClick={() => setPage((p) => p - 1)}
-              className="p-2 border rounded"
+              onClick={() => setPage(page - 1)}
+              className="p-2 border border-slate-200 rounded-lg bg-white text-slate-600 disabled:opacity-40 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={18} />
             </button>
+            <span className="px-4 py-2 font-bold text-slate-700">
+              Trang {page + 1} / {totalPages || 1}
+            </span>
             <button
               disabled={page >= totalPages - 1}
-              onClick={() => setPage((p) => p + 1)}
-              className="p-2 border rounded"
+              onClick={() => setPage(page + 1)}
+              className="p-2 border border-slate-200 rounded-lg bg-white text-slate-600 disabled:opacity-40 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={18} />
             </button>
           </div>
         </div>
       )}
 
-      {/* Modal Thêm/Sửa */}
+      {/* CÁC MODAL HIỆN CÓ CỦA BẠN GIỮ NGUYÊN BÊN DƯỚI ... */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
-            <div className="p-5 border-b flex justify-between items-center">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="p-5 border-b flex justify-between items-center bg-[#1a237e] text-white">
               <h3 className="font-bold text-lg">
-                {editData ? "Sửa Máy Chiếu" : "Thêm Máy Chiếu Mới"}
+                {selectedProjector
+                  ? "Cập nhật máy chiếu"
+                  : "Thêm máy chiếu mới"}
               </h3>
               <button onClick={() => setIsModalOpen(false)}>
                 <X size={20} />
               </button>
             </div>
-            <div className="p-5 space-y-4">
+            <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">
-                  Tên máy chiếu *
+                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">
+                  Tên Máy Chiếu *
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 bg-slate-50 border rounded-lg"
+                  className="w-full p-3 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-[#1a237e] outline-none"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
@@ -306,12 +325,12 @@ export default function ProjectorTab() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-2">
+                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">
                   Số Serial *
                 </label>
                 <input
                   type="text"
-                  className="w-full p-3 bg-slate-50 border rounded-lg"
+                  className="w-full p-3 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-[#1a237e] outline-none"
                   value={formData.serialNumber}
                   onChange={(e) =>
                     setFormData({ ...formData, serialNumber: e.target.value })
@@ -322,7 +341,7 @@ export default function ProjectorTab() {
             <div className="p-5 border-t bg-slate-50 flex space-x-3">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="flex-1 py-3 bg-white border font-bold rounded-lg"
+                className="flex-1 py-3 bg-white border font-bold text-slate-600 rounded-lg"
               >
                 Hủy
               </button>
@@ -342,11 +361,10 @@ export default function ProjectorTab() {
         </div>
       )}
 
-      {/* MODAL LỊCH SỬ */}
       <ProjectorHistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
-        projector={selectedProjectorHistory}
+        projector={selectedProjector}
       />
     </div>
   );

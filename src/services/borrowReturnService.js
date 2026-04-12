@@ -26,4 +26,5 @@ export const borrowReturnService = {
     }),
 
   updateTicket: (id, data) => axiosClient.put(`/borrow-return/${id}`, data),
+  deleteTicket: (id) => axiosClient.delete(`/borrow-return/${id}`),
 };

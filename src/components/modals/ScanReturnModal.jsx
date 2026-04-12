@@ -204,7 +204,7 @@ export default function ScanReturnModal({ onClose, onReload }) {
               </h4>
               <div className="grid grid-cols-2 gap-y-2 text-sm">
                 <span className="text-slate-500">Vật tư:</span>{" "}
-                <span className="font-bold">{ticketInfo.material.name}</span>
+                <span className="font-bold">{ticketInfo.itemName}</span>
                 <span className="text-slate-500">Số lượng:</span>{" "}
                 <span className="font-bold text-amber-600">
                   {ticketInfo.quantity}

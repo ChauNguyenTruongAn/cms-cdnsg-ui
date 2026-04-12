@@ -30,7 +30,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
               {displayCode}
             </div>
             <p className="text-sm text-slate-500 mt-1">
-              {ticket.material.name} - SL: {ticket.quantity}
+              {ticket.itemName} - SL: {ticket.quantity}
             </p>
           </div>
           <div className="pt-4 text-xs text-slate-400 italic">

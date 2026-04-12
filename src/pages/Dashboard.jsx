@@ -11,6 +11,7 @@ import {
   CheckCircle,
   PackageOpen,
   Loader2,
+  ShieldCheck,
 } from "lucide-react";
 import { materialService } from "../services/materialService";
 import { projectorService } from "../services/projectorService";
@@ -275,6 +276,55 @@ export default function Dashboard() {
                 Báo cáo <ArrowRight size={14} className="ml-1" />
               </button>
             </div>
+
+            {/* ---> BẮT ĐẦU: KHU VỰC THỐNG KÊ PCCC THÊM MỚI <--- */}
+            <div className="p-5 grid grid-cols-3 gap-3 border-b border-slate-100">
+              <div
+                className="bg-emerald-50 p-3 rounded-xl border border-emerald-100 text-center cursor-pointer hover:bg-emerald-100 transition-colors"
+                onClick={() => navigate("/fire-extinguishers")}
+              >
+                <ShieldCheck
+                  size={24}
+                  className="mx-auto text-emerald-600 mb-1"
+                />
+                <p className="text-2xl font-black text-emerald-700">
+                  {fireStats.ok}
+                </p>
+                <p className="text-[10px] font-bold text-emerald-600 uppercase mt-1">
+                  An Toàn
+                </p>
+              </div>
+              <div
+                className="bg-amber-50 p-3 rounded-xl border border-amber-100 text-center cursor-pointer hover:bg-amber-100 transition-colors"
+                onClick={() => navigate("/fire-extinguishers")}
+              >
+                <Timer size={24} className="mx-auto text-amber-600 mb-1" />
+                <p className="text-2xl font-black text-amber-700">
+                  {fireStats.warning}
+                </p>
+                <p className="text-[10px] font-bold text-amber-600 uppercase mt-1">
+                  Sắp Hết Hạn
+                </p>
+              </div>
+              <div
+                className="bg-red-50 p-3 rounded-xl border border-red-100 text-center cursor-pointer hover:bg-red-100 transition-colors"
+                onClick={() => navigate("/fire-extinguishers")}
+              >
+                <AlertTriangle
+                  size={24}
+                  className="mx-auto text-red-600 mb-1"
+                />
+                <p className="text-2xl font-black text-red-700">
+                  {fireStats.expired}
+                </p>
+                <p className="text-[10px] font-bold text-red-600 uppercase mt-1">
+                  Quá Hạn
+                </p>
+              </div>
+            </div>
+            {/* ---> KẾT THÚC: KHU VỰC THỐNG KÊ PCCC <--- */}
+
+            {/* DANH SÁCH CẢNH BÁO GIỮ NGUYÊN NHƯ CŨ */}
             <div className="p-0">
               {fireWarningList.length === 0 ? (
                 <div className="p-6 text-center text-slate-400">

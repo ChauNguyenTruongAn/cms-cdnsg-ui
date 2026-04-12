@@ -34,6 +34,9 @@ export default function EditBorrowModal({ ticket, onClose, onReload }) {
         <div className="p-5 border-b flex justify-between items-center bg-slate-100">
           <h3 className="font-bold text-slate-800 flex items-center">
             Chỉnh sửa phiếu {ticket.borrowCode}
+            <span className="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-md text-xs font-medium">
+              {ticket.itemName}
+            </span>
           </h3>
           <button
             onClick={onClose}

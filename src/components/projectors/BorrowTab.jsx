@@ -110,6 +110,11 @@ export default function BorrowTab() {
     setIsBorrowOpen(true);
   };
 
+  const openViewModal = (loan) => {
+    setSelectedLoan(loan);
+    setIsViewEditOpen(true);
+  };
+
   const submitBorrow = async () => {
     if (borrowForm.projectorIds.length === 0 || !borrowForm.borrower)
       return showToast("Vui lòng chọn máy chiếu và người mượn!", "error");
@@ -236,6 +241,24 @@ export default function BorrowTab() {
                     )}
                   </td>
                   <td className="px-6 py-4 flex justify-end space-x-2">
+                    {item.status === "BORROWED" && (
+                      <button
+                        onClick={() => openReturnModal(item)}
+                        className="px-3 py-1.5 bg-green-100 text-green-700 font-bold text-xs rounded-lg hover:bg-green-200 transition-colors"
+                      >
+                        THU HỒI
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 flex justify-end space-x-2">
+                    <button
+                      onClick={() => openViewModal(item)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors flex items-center justify-center"
+                      title="Xem chi tiết"
+                    >
+                      <Eye size={18} />
+                    </button>
+
                     {item.status === "BORROWED" && (
                       <button
                         onClick={() => openReturnModal(item)}
@@ -474,6 +497,97 @@ export default function BorrowTab() {
                 ) : (
                   "Hoàn tất thu hồi"
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL XEM CHI TIẾT */}
+      {isViewEditOpen && selectedLoan && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-5 border-b flex justify-between items-center bg-slate-100 text-slate-800">
+              <h3 className="font-bold text-lg flex items-center">
+                <Eye className="mr-2 text-slate-600" size={20} /> Chi tiết Phiếu
+                Mượn #{selectedLoan.id}
+              </h3>
+              <button
+                onClick={() => setIsViewEditOpen(false)}
+                className="hover:text-red-500 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4 text-sm text-slate-700">
+              <div className="grid grid-cols-2 gap-4 border-b border-slate-100 pb-4">
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">
+                    Máy chiếu
+                  </p>
+                  <p className="font-bold text-[#1a237e]">
+                    {selectedLoan.projectorName}
+                  </p>
+                  <p className="text-xs text-slate-500 font-mono mt-0.5">
+                    SN: {selectedLoan.projectorSerial}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">
+                    Người mượn
+                  </p>
+                  <p className="font-bold">{selectedLoan.borrower}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Ngày mượn: {selectedLoan.borrowDate}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">
+                  Trạng thái hiện tại
+                </p>
+                {selectedLoan.status === "BORROWED" ||
+                selectedLoan.status === "BORROWING" ? (
+                  <span className="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg border bg-blue-50 text-blue-600 border-blue-200">
+                    ĐANG MƯỢN
+                  </span>
+                ) : (
+                  <span className="inline-block px-2.5 py-1 text-[11px] font-bold rounded-lg border bg-green-50 text-green-600 border-green-200">
+                    ĐÃ TRẢ
+                  </span>
+                )}
+              </div>
+
+              {/* Nếu đã trả thì hiển thị thêm thông tin thu hồi */}
+              {selectedLoan.status === "RETURNED" && (
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mt-2 space-y-2">
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">
+                      Ngày trả
+                    </p>
+                    <p className="font-medium">
+                      {selectedLoan.returnDate || "Chưa cập nhật"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">
+                      Ghi chú lúc trả
+                    </p>
+                    <p className="italic text-slate-600">
+                      {selectedLoan.returnNote || "Không có ghi chú"}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t bg-slate-50 flex justify-end">
+              <button
+                onClick={() => setIsViewEditOpen(false)}
+                className="px-5 py-2 bg-slate-200 font-bold text-slate-600 rounded-xl hover:bg-slate-300 transition-colors"
+              >
+                Đóng
               </button>
             </div>
           </div>

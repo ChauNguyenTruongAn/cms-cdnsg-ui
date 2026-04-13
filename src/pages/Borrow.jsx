@@ -64,7 +64,7 @@ export default function Borrow() {
 
   useEffect(() => {
     fetchTickets();
-  }, [fetchTickets]);
+  }, [debouncedKeyword, page, size]);
 
   const handleDelete = async (id, borrowCode) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa phiếu mượn ${borrowCode}?`)) {

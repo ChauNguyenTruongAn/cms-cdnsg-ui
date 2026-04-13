@@ -76,4 +76,6 @@ export const projectorService = {
     axiosClient.post(`/projector-maintenances/${itemId}/complete`, null, {
       params: { status },
     }),
+  getMaintenanceHistory: (projectorId) =>
+    axiosClient.get(`/projector-maintenances/projector/${projectorId}`),
 };

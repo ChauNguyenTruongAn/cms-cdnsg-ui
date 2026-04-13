@@ -9,6 +9,7 @@ import {
   ArrowRightLeft,
   Search,
   Eye,
+  Trash2, // Thêm icon Trash2 để làm nút Xóa
   MonitorPlay,
 } from "lucide-react";
 import { projectorService } from "../../services/projectorService";
@@ -32,6 +33,7 @@ export default function BorrowTab() {
   const [isBorrowOpen, setIsBorrowOpen] = useState(false);
   const [isViewEditOpen, setIsViewEditOpen] = useState(false);
   const [isReturnOpen, setIsReturnOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false); // Thêm state cho Modal Sửa
 
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -40,6 +42,12 @@ export default function BorrowTab() {
     projectorIds: [],
     borrower: "",
     borrowDate: new Date().toISOString().split("T")[0],
+    note: "",
+  });
+
+  // Form dành cho việc Edit
+  const [editForm, setEditForm] = useState({
+    borrower: "",
     note: "",
   });
 
@@ -113,6 +121,50 @@ export default function BorrowTab() {
   const openViewModal = (loan) => {
     setSelectedLoan(loan);
     setIsViewEditOpen(true);
+  };
+
+  // --- HÀM MỚI: Mở modal Sửa ---
+  const openEditModal = (loan) => {
+    setSelectedLoan(loan);
+    setEditForm({
+      borrower: loan.borrower || "",
+      note: loan.note || "",
+    });
+    setIsEditOpen(true);
+  };
+
+  // --- HÀM MỚI: Submit Sửa ---
+  const submitEdit = async () => {
+    setIsSaving(true);
+    try {
+      // Giả định service có hàm updateLoan
+      await projectorService.updateLoan(selectedLoan.id, editForm);
+      showToast("Cập nhật phiếu mượn thành công!");
+      setIsEditOpen(false);
+      fetchData();
+    } catch (error) {
+      showToast("Lỗi khi cập nhật phiếu mượn", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // --- HÀM MỚI: Xóa phiếu mượn ---
+  const handleDelete = async (id) => {
+    if (
+      !window.confirm(
+        "Bạn có chắc chắn muốn xóa phiếu mượn này? Hành động này không thể hoàn tác.",
+      )
+    )
+      return;
+    try {
+      // Giả định service có hàm deleteLoan
+      await projectorService.deleteLoan(id);
+      showToast("Đã xóa phiếu mượn thành công!");
+      fetchData();
+    } catch (error) {
+      showToast("Lỗi khi xóa phiếu mượn", "error");
+    }
   };
 
   const submitBorrow = async () => {
@@ -218,9 +270,9 @@ export default function BorrowTab() {
                     #{item.id}
                   </td>
                   <td className="px-6 py-4 font-bold text-[#1a237e]">
-                    {item.projectorName} <br />
+                    {item.projector.name} <br />
                     <span className="text-[10px] text-slate-400 font-mono font-normal">
-                      SN: {item.projectorSerial}
+                      SN: {item.projector.serialNumber}
                     </span>
                   </td>
                   <td className="px-6 py-4 font-semibold text-slate-700">
@@ -230,7 +282,9 @@ export default function BorrowTab() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    {item.status === "BORROWING" ? (
+                    {/* Bắt chuẩn cả 2 trường hợp tên status để tránh lỗi */}
+                    {item.status === "BORROWING" ||
+                    item.status === "BORROWED" ? (
                       <span className="px-2.5 py-1 text-[11px] font-bold rounded-lg border bg-blue-50 text-blue-600 border-blue-200">
                         ĐANG MƯỢN
                       </span>
@@ -240,17 +294,9 @@ export default function BorrowTab() {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 flex justify-end space-x-2">
-                    {item.status === "BORROWED" && (
-                      <button
-                        onClick={() => openReturnModal(item)}
-                        className="px-3 py-1.5 bg-green-100 text-green-700 font-bold text-xs rounded-lg hover:bg-green-200 transition-colors"
-                      >
-                        THU HỒI
-                      </button>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 flex justify-end space-x-2">
+
+                  {/* FIX LỖI: Đã gộp 2 thẻ <td> thao tác thành 1 */}
+                  <td className="px-6 py-4 flex justify-end items-center space-x-2">
                     <button
                       onClick={() => openViewModal(item)}
                       className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors flex items-center justify-center"
@@ -259,10 +305,27 @@ export default function BorrowTab() {
                       <Eye size={18} />
                     </button>
 
-                    {item.status === "BORROWED" && (
+                    <button
+                      onClick={() => openEditModal(item)}
+                      className="p-1.5 text-amber-500 hover:bg-amber-100 rounded-lg transition-colors flex items-center justify-center"
+                      title="Sửa thông tin"
+                    >
+                      <Edit size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center"
+                      title="Xóa phiếu"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+
+                    {(item.status === "BORROWED" ||
+                      item.status === "BORROWING") && (
                       <button
                         onClick={() => openReturnModal(item)}
-                        className="px-3 py-1.5 bg-green-100 text-green-700 font-bold text-xs rounded-lg hover:bg-green-200 transition-colors"
+                        className="px-3 py-1.5 bg-green-100 text-green-700 font-bold text-xs rounded-lg hover:bg-green-200 transition-colors ml-2"
                       >
                         THU HỒI
                       </button>
@@ -320,7 +383,7 @@ export default function BorrowTab() {
         </div>
       )}
 
-      {/* CÁC MODAL HIỆN CÓ CỦA BẠN GIỮ NGUYÊN BÊN DƯỚI ... */}
+      {/* MODAL TẠO PHIẾU MƯỢN */}
       {isBorrowOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
@@ -427,6 +490,7 @@ export default function BorrowTab() {
         </div>
       )}
 
+      {/* MODAL THU HỒI */}
       {isReturnOpen && selectedLoan && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -441,7 +505,7 @@ export default function BorrowTab() {
                 <p>
                   Thu hồi máy:{" "}
                   <span className="font-bold text-green-700">
-                    {selectedLoan.projectorName}
+                    {selectedLoan.projector.name}
                   </span>
                 </p>
                 <p>
@@ -503,6 +567,71 @@ export default function BorrowTab() {
         </div>
       )}
 
+      {/* MODAL CẬP NHẬT / SỬA PHIẾU (THÊM MỚI) */}
+      {isEditOpen && selectedLoan && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-5 border-b flex justify-between items-center bg-amber-500 text-white">
+              <h3 className="font-bold text-lg flex items-center">
+                <Edit className="mr-2" size={20} /> Sửa Phiếu Mượn #
+                {selectedLoan.id}
+              </h3>
+              <button onClick={() => setIsEditOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-2">
+                  Người mượn *
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-3 bg-slate-50 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500"
+                  value={editForm.borrower}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, borrower: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-2">
+                  Ghi chú
+                </label>
+                <textarea
+                  className="w-full p-3 bg-slate-50 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500"
+                  rows="3"
+                  value={editForm.note}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, note: e.target.value })
+                  }
+                  placeholder="Thêm ghi chú nếu cần..."
+                />
+              </div>
+            </div>
+            <div className="p-4 border-t bg-slate-50 flex space-x-3">
+              <button
+                onClick={() => setIsEditOpen(false)}
+                className="flex-1 py-2.5 border font-bold text-slate-600 rounded-xl hover:bg-white"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={submitEdit}
+                disabled={isSaving}
+                className="flex-1 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 flex justify-center items-center shadow-md"
+              >
+                {isSaving ? (
+                  <Loader2 size={18} className="animate-spin mr-2" />
+                ) : (
+                  "Lưu thay đổi"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL XEM CHI TIẾT */}
       {isViewEditOpen && selectedLoan && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -526,10 +655,10 @@ export default function BorrowTab() {
                     Máy chiếu
                   </p>
                   <p className="font-bold text-[#1a237e]">
-                    {selectedLoan.projectorName}
+                    {selectedLoan.projector.name}
                   </p>
                   <p className="text-xs text-slate-500 font-mono mt-0.5">
-                    SN: {selectedLoan.projectorSerial}
+                    SN: {selectedLoan.projector.numberSerial}
                   </p>
                 </div>
                 <div>

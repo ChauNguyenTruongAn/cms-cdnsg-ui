@@ -55,6 +55,7 @@ export const projectorService = {
   updateLoan: (id, data) => axiosClient.put(`/projector-loans/${id}`, data),
   getLoanHistoryByProjector: (projectorId) =>
     axiosClient.get(`/projector-loans/projector/${projectorId}`),
+  deleteLoan: (id) => axiosClient.delete(`/projector-loans/${id}`),
 
   // --- BẢO TRÌ ---
   // CẬP NHẬT: Thêm tham số phân trang

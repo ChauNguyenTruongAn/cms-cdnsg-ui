@@ -225,7 +225,7 @@ export default function BorrowTab() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    {item.status === "BORROWED" ? (
+                    {item.status === "BORROWING" ? (
                       <span className="px-2.5 py-1 text-[11px] font-bold rounded-lg border bg-blue-50 text-blue-600 border-blue-200">
                         ĐANG MƯỢN
                       </span>

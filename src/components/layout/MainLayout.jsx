@@ -29,13 +29,13 @@ export default function MainLayout() {
   const navItems = [
     { path: "/", label: "Tổng quan", icon: LayoutDashboard },
     { path: "/inventory", label: "Vật tư kho", icon: Package },
-    { path: "/borrow", label: "Mượn / Trả QR", icon: QrCode },
     { path: "/transactions", label: "Nhập / Xuất", icon: ArrowRightLeft },
-    { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
     { path: "/report", label: "Báo cáo thống kê", icon: FileSpreadsheet },
+    { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
+    { path: "/fire-extinguishers", label: "Phòng cháy chữa cháy", icon: Flame },
     { path: "/projectors", label: "Quản lý Máy chiếu", icon: Video },
     { path: "/uniforms", label: "Quản lý Đồng phục", icon: Shirt },
-    { path: "/fire-extinguishers", label: "Phòng cháy chữa cháy", icon: Flame },
+    { path: "/borrow", label: "Mượn / Trả QR", icon: QrCode },
 
   ];
 
@@ -48,7 +48,7 @@ export default function MainLayout() {
             {/* Khung chứa Logo */}
             <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-100 shadow-sm flex-shrink-0 transition-transform hover:scale-105">
               <img
-                src="/logo.svg"
+                src="/Logo-Truong-Cao-dang-Bach-khoa-Nam-Sai-Gon.webp"
                 alt="Logo Kho BKNSG"
                 className="h-9 w-9 object-contain drop-shadow-sm"
               />
@@ -56,12 +56,12 @@ export default function MainLayout() {
 
             {/* Khung chứa Text */}
             <div className="flex flex-col justify-center">
-              <h1 className="text-[17px] font-extrabold text-[#1a237e] leading-none tracking-tight">
-                PHẦN MỀM
+              <h1 className="text-[15px] font-extrabold text-[#1a237e] leading-none tracking-tight">
+               PHÒNG QUẢN TRỊ THIẾT BỊ VÀ
+               CƠ SỞ VẬT CHẤT
               </h1>
-              <p className="text-[11px] text-slate-500 mt-1.5 uppercase tracking-widest font-bold">
-                Quản lý kho
-              </p>
+              {/* <p className="text-[11px] text-slate-500 mt-1.5 uppercase tracking-widest font-bold">
+              </p> */}
             </div>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default function MainLayout() {
         {/* Header */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sm:px-8 shrink-0">
           <h2 className="text-lg font-bold text-[#1c72bd]">
-            Trường Cao đẳng Bách Khoa Nam Sài Gòn
+            PHẦN MỀM QUẢN LÝ KHO
           </h2>
           <div className="flex items-center space-x-4">
             <div className="relative">

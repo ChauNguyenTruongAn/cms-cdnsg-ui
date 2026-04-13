@@ -53,8 +53,8 @@ export default function UniformImportTab() {
         ...filters,
       });
       setData(res.content || []);
-      setTotalPages(res.totalPages || 0);
-      setTotalElements(res.totalElements || 0);
+      setTotalPages(res.page.totalPages || 0);
+      setTotalElements(res.page.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải lịch sử nhập kho!", "error");
     } finally {

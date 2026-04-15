@@ -103,8 +103,8 @@ export default function FireExtinguishers() {
         fireExtinguisherService.getStats(),
       ]);
       setData(listRes.content || []);
-      setTotalPages(listRes.totalPages || 0);
-      setTotalElements(listRes.totalElements || 0);
+      setTotalPages(listRes.page.totalPages || 0);
+      setTotalElements(listRes.page.totalElements || 0);
       setStats(statsRes);
     } catch (error) {
       showToast("Lỗi tải dữ liệu PCCC", "error");

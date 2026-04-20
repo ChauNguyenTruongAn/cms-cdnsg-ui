@@ -3,10 +3,7 @@ import { Projector, ArrowRightLeft, Wrench, BarChart2 } from "lucide-react";
 import ProjectorTab from "../components/projectors/ProjectorTab";
 import BorrowTab from "../components/projectors/BorrowTab";
 import MaintenanceTab from "../components/projectors/MaintenanceTab";
-// Chúng ta sẽ import 3 tab này sau:
-// import BorrowTab from '../components/projectors/BorrowTab';
-// import MaintenanceTab from '../components/projectors/MaintenanceTab';
-// import ReportTab from '../components/projectors/ReportTab';
+import ProjectorReportTab from "../components/projectors/ProjectorReportTab";
 
 export default function Projectors() {
   const [activeTab, setActiveTab] = useState("catalog");
@@ -62,11 +59,7 @@ export default function Projectors() {
         {activeTab === "catalog" && <ProjectorTab />}
         {activeTab === "borrow" && <BorrowTab />}
         {activeTab === "maintenance" && <MaintenanceTab />}
-        {activeTab === "report" && (
-          <div className="p-12 text-center text-slate-400">
-            Tab Thống kê đang xây dựng...
-          </div>
-        )}
+        {activeTab === "report" && <ProjectorReportTab />}
       </div>
     </div>
   );

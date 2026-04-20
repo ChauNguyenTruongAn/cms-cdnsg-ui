@@ -38,16 +38,23 @@ export default function BorrowTab() {
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  };
+
   const [borrowForm, setBorrowForm] = useState({
     projectorIds: [],
     borrower: "",
-    borrowDate: new Date().toISOString().split("T")[0],
+    borrowDate: getCurrentDateTime(), // Cập nhật ở đây
     note: "",
   });
 
   // Form dành cho việc Edit
   const [editForm, setEditForm] = useState({
     borrower: "",
+    borrowDate: "", // Thêm trường này vào editForm
     note: "",
   });
 
@@ -118,11 +125,6 @@ export default function BorrowTab() {
     setIsBorrowOpen(true);
   };
 
-  const openViewModal = (loan) => {
-    setSelectedLoan(loan);
-    setIsViewEditOpen(true);
-  };
-
   // --- HÀM MỚI: Mở modal Sửa ---
   const openEditModal = (loan) => {
     setSelectedLoan(loan);
@@ -188,6 +190,11 @@ export default function BorrowTab() {
     setReturnNote("");
     setReturnNextStatus("AVAILABLE");
     setIsReturnOpen(true);
+  };
+
+  const openViewModal = (loan) => {
+    setSelectedLoan(loan);
+    setIsViewEditOpen(true);
   };
 
   const submitReturn = async () => {
@@ -454,7 +461,7 @@ export default function BorrowTab() {
                     Ngày mượn *
                   </label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     className="w-full p-3 bg-slate-50 border rounded-lg outline-none"
                     value={borrowForm.borrowDate}
                     onChange={(e) =>
@@ -567,7 +574,7 @@ export default function BorrowTab() {
         </div>
       )}
 
-      {/* MODAL CẬP NHẬT / SỬA PHIẾU (THÊM MỚI) */}
+      {/* MODAL SỬA PHIẾU MƯỢN */}
       {isEditOpen && selectedLoan && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -596,6 +603,19 @@ export default function BorrowTab() {
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-2">
+                  Ngày & Giờ mượn *
+                </label>
+                <input
+                  type="datetime-local"
+                  className="w-full p-3 bg-slate-50 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500"
+                  value={editForm.borrowDate}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, borrowDate: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-2">
                   Ghi chú
                 </label>
                 <textarea
@@ -605,7 +625,6 @@ export default function BorrowTab() {
                   onChange={(e) =>
                     setEditForm({ ...editForm, note: e.target.value })
                   }
-                  placeholder="Thêm ghi chú nếu cần..."
                 />
               </div>
             </div>
@@ -619,10 +638,10 @@ export default function BorrowTab() {
               <button
                 onClick={submitEdit}
                 disabled={isSaving}
-                className="flex-1 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 flex justify-center items-center shadow-md"
+                className="flex-1 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 shadow-md flex justify-center items-center"
               >
                 {isSaving ? (
-                  <Loader2 size={18} className="animate-spin mr-2" />
+                  <Loader2 size={18} className="animate-spin" />
                 ) : (
                   "Lưu thay đổi"
                 )}

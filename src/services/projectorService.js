@@ -79,4 +79,7 @@ export const projectorService = {
     }),
   getMaintenanceHistory: (projectorId) =>
     axiosClient.get(`/projector-maintenances/projector/${projectorId}`),
+
+  //summary
+  getTotalTimeUsage: () => axiosClient.get("/projector-loans/statistics/usage"),
 };

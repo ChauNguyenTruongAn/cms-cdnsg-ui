@@ -1,39 +1,34 @@
-import React, { useState, useEffect } from "react"; // Thêm useEffect
-import { useSearchParams, useNavigate } from "react-router-dom"; // Thêm useNavigate
-import { CheckCircle2, Loader2, Mail, QrCode } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { CheckCircle2, Loader2, Mail, QrCode, XCircle } from "lucide-react"; // Thêm XCircle
 import { borrowReturnService } from "../services/borrowReturnService";
 import { useToast } from "../context/ToastContext";
 
 export default function ScanBorrow() {
   const [searchParams] = useSearchParams();
-  const borrowCode = searchParams.get("code");
+  const [borrowCode, setBorrowCode] = useState(searchParams.get("code"));
   const { showToast } = useToast();
-
-  // Khởi tạo navigate
-  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [countdown, setCountdown] = useState(3); // State đếm ngược 3 giây
 
-  // Tự động chuyển hướng sau khi thành công
+  // 1. Logic "Che giấu": Xóa code khỏi URL ngay khi vừa load xong
   useEffect(() => {
-    if (isSuccess) {
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            navigate("/borrow"); // Chuyển hướng về trang mượn đồ (thay đổi route này nếu cần)
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
+    if (borrowCode) {
+      // Thay thế URL hiện tại bằng URL không chứa query string
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [isSuccess, navigate]);
+  }, []);
+
+  // 2. Logic "Thoát": Hàm đóng tab/trình duyệt
+  const handleExit = () => {
+    window.close();
+    // Backup: Nếu window.close() bị trình duyệt chặn, báo cho người dùng
+    setTimeout(() => {
+      alert("Bạn có thể đóng tab này trên trình duyệt của mình.");
+    }, 200);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,10 +45,15 @@ export default function ScanBorrow() {
     }
   };
 
-  if (!borrowCode) {
+  if (!borrowCode && !isSuccess) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <p className="text-slate-500">Mã quét không hợp lệ.</p>
+        <div className="text-center">
+          <XCircle size={48} className="mx-auto text-red-400 mb-4" />
+          <p className="text-slate-500 font-medium">
+            Mã quét không hợp lệ hoặc đã hết hạn.
+          </p>
+        </div>
       </div>
     );
   }
@@ -64,7 +64,11 @@ export default function ScanBorrow() {
         <div className="bg-[#1a237e] p-6 text-center text-white">
           <QrCode size={40} className="mx-auto mb-3 opacity-80" />
           <h2 className="text-xl font-bold">Xác nhận mượn vật tư</h2>
-          <p className="text-indigo-200 text-sm mt-1">Mã phiếu: {borrowCode}</p>
+          {!isSuccess && (
+            <p className="text-indigo-200 text-sm mt-1">
+              Hệ thống quản lý kho BKNSG
+            </p>
+          )}
         </div>
 
         <div className="p-6">
@@ -75,38 +79,35 @@ export default function ScanBorrow() {
                 className="mx-auto text-green-500 animate-in zoom-in duration-500"
               />
               <h3 className="text-xl font-bold text-slate-800">Thành công!</h3>
-              <p className="text-slate-500 text-sm">
+              <p className="text-slate-500 text-sm px-4">
                 Đã xác nhận mượn đồ. Vui lòng kiểm tra email <b>{email}</b> để
-                nhận Mã Trả Đồ nhé!
+                nhận <b>Mã Trả Đồ</b> nhé!
               </p>
 
-              <div className="pt-4 border-t border-slate-100 mt-6">
-                <p className="text-xs text-slate-400 mb-3">
-                  Tự động quay về sau{" "}
-                  <span className="font-bold text-[#1a237e]">{countdown}s</span>
-                  ...
-                </p>
-                {/* Nút quay về thủ công */}
+              <div className="pt-8 mt-6">
                 <button
-                  onClick={() => navigate("/borrow")}
-                  className="w-full py-3 bg-indigo-50 hover:bg-indigo-100 text-[#1a237e] rounded-xl font-bold transition-colors"
+                  onClick={handleExit}
+                  className="w-full py-4 bg-slate-800 hover:bg-black text-white rounded-2xl font-bold transition-all shadow-lg flex items-center justify-center gap-2"
                 >
-                  Quay về trang quản lý ngay
+                  HOÀN TẤT & ĐÓNG
                 </button>
+                <p className="text-[10px] text-slate-400 mt-4 uppercase tracking-widest">
+                  Cảm ơn bạn đã sử dụng dịch vụ
+                </p>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="text-center mb-6">
                 <p className="text-slate-600 text-sm">
-                  Vui lòng nhập Email liên hệ của bạn để hoàn tất thủ tục và
-                  nhận thông tin phiếu trả.
+                  Nhập Email để hệ thống gửi Mã Trả Đồ tự động sau khi bạn sử
+                  dụng xong.
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                  Email cá nhân *
+                  Email nhận mã trả *
                 </label>
                 <div className="relative">
                   <Mail
@@ -116,7 +117,7 @@ export default function ScanBorrow() {
                   <input
                     type="email"
                     required
-                    placeholder="vidu@gmail.com"
+                    placeholder="student@bknsg.edu.vn"
                     className="w-full pl-10 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a237e]/50 transition-all"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

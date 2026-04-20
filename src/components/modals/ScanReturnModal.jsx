@@ -31,7 +31,7 @@ export default function ScanReturnModal({ onClose, onReload }) {
   // 1. Lấy danh sách Camera khi mở Modal
   useEffect(() => {
     if (ticketInfo) return; // Không lấy cam nếu đã quét xong
-
+    console.log(ticketInfo);
     Html5Qrcode.getCameras()
       .then((devices) => {
         if (devices && devices.length > 0) {

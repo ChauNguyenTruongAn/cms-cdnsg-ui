@@ -164,6 +164,21 @@ export default function MaintenanceTab() {
     setIsCompleteTicketOpen(true);
   };
 
+  const translateStatus = (value) => {
+    switch (value) {
+      case "BORROWED":
+        return "Đang mượn";
+      case "BROKEN":
+        return "Hư hỏng";
+      case "UNDER_MAINTENANCE":
+        return "Đang bảo trì";
+      case "AVAILABLE":
+        return "Sẵn sàn cho mượn";
+      case "IN_USE":
+        return "Đang dùng";
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full animate-in fade-in duration-300">
       <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -394,7 +409,7 @@ export default function MaintenanceTab() {
                       <span className="font-semibold text-slate-700">
                         {p.name}{" "}
                         <span className="text-xs text-slate-400 font-normal">
-                          ({p.serialNumber}) - {p.status}
+                          ({p.serialNumber}) - {translateStatus(p.status)}
                         </span>
                       </span>
                     </label>

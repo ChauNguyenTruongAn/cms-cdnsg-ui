@@ -90,7 +90,9 @@ export default function Docs() {
 
       // Xử lý phân trang tương tự các màn hình trước
       setTotalPages(res.data.page?.totalPages || res.data.totalPages || 0);
-      setTotalElements(res.data.page?.totalElements || res.data.totalElements || 0);
+      setTotalElements(
+        res.data.page?.totalElements || res.data.totalElements || 0,
+      );
     } catch (error) {
       showToast("Lỗi tải danh sách tài liệu", "error");
     } finally {
@@ -201,6 +203,12 @@ export default function Docs() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
+  const getPdfThumbnail = (url) => {
+    return url
+      .replace("/upload/", "/upload/pg_1/c_fill,w_400,h_500/")
+      .replace(".pdf", ".jpg");
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4 flex flex-col h-full">
       {/* Header & Công cụ */}
@@ -279,7 +287,7 @@ export default function Docs() {
                   <div className="h-44 bg-slate-100 flex items-center justify-center relative overflow-hidden">
                     {isImage ? (
                       <img
-                        src={item.fileUrl}
+                        src={getPdfThumbnail(item.fileUrl)}
                         alt={item.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />

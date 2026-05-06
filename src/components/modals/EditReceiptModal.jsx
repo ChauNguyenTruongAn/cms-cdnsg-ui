@@ -41,7 +41,7 @@ export default function EditReceiptModal({
     if (isOpen && receiptData) {
       materialService
         .getAllMaterials(0, 1000)
-        .then((res) => setMaterials(res.content || []));
+        .then((res) => setMaterials(res.data.content || []));
 
       // Đổ dữ liệu phiếu cũ vào Form
       // SỬA LỖI: Đọc dữ liệu từ `receiptCode` vì Backend của bạn lưu mã vào trường này

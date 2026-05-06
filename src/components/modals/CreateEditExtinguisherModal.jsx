@@ -41,7 +41,7 @@ export default function CreateEditExtinguisherModal({
     if (isOpen) {
       fireExtinguisherService
         .getZones()
-        .then((res) => setZones(res || []))
+        .then((res) => setZones(res.data || []))
         .catch(() => showToast("Lỗi tải danh sách Khu vực", "error"));
     }
   }, [isOpen]);
@@ -51,7 +51,7 @@ export default function CreateEditExtinguisherModal({
     if (zoneId) {
       fireExtinguisherService
         .getLocationsByZone(zoneId)
-        .then((res) => setLocations(res || []))
+        .then((res) => setLocations(res.data || []))
         .catch(() => showToast("Lỗi tải danh sách Vị trí", "error"));
     } else {
       setLocations([]);

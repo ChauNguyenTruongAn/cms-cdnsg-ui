@@ -86,11 +86,11 @@ export default function Docs() {
         debouncedSearch,
         filterCategory,
       );
-      setData(res.content || []);
+      setData(res.data.content || []);
 
       // Xử lý phân trang tương tự các màn hình trước
-      setTotalPages(res.page?.totalPages || res.totalPages || 0);
-      setTotalElements(res.page?.totalElements || res.totalElements || 0);
+      setTotalPages(res.data.page?.totalPages || res.data.totalPages || 0);
+      setTotalElements(res.data.page?.totalElements || res.data.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải danh sách tài liệu", "error");
     } finally {
@@ -101,7 +101,8 @@ export default function Docs() {
   const fetchCategories = async () => {
     try {
       const res = await mediaService.getCategories();
-      setCategories(res || []);
+      console.log(res);
+      setCategories(res.data || []);
     } catch (error) {
       showToast("Lỗi tải danh mục", "error");
     }

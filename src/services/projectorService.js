@@ -79,6 +79,8 @@ export const projectorService = {
     }),
   getMaintenanceHistory: (projectorId) =>
     axiosClient.get(`/projector-maintenances/projector/${projectorId}`),
+  deleteTicketById: (projectorId) =>
+    axiosClient.delete(`/projector-maintenances/${projectorId}`),
 
   //summary
   getTotalTimeUsage: () => axiosClient.get("/projector-loans/statistics/usage"),

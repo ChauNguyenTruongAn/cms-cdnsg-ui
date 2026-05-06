@@ -52,9 +52,9 @@ export default function Borrow() {
         "",
         debouncedKeyword,
       );
-      setTickets(res.content || []);
-      setTotalPages(res.page?.totalPages || 0);
-      setTotalElements(res.page?.totalElements || 0);
+      setTickets(res.data.content || []);
+      setTotalPages(res.data.page?.totalPages || 0);
+      setTotalElements(res.data.page?.totalElements || 0);
     } catch (e) {
       showToast("Lỗi khi tải danh sách phiếu", "error");
     } finally {

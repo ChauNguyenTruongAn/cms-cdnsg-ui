@@ -46,9 +46,9 @@ export default function ImportTab() {
         sortBy: "id",
         direction: "desc",
       });
-      setData(res.content || []);
-      setTotalPages(res.page?.totalPages || res.totalPages || 0);
-      setTotalElements(res.page?.totalElements || res.totalElements || 0);
+      setData(res.data.content || []);
+      setTotalPages(res.data.page?.totalPages || res.data.totalPages || 0);
+      setTotalElements(res.data.page?.totalElements || res.data.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải phiếu nhập", "error");
     } finally {

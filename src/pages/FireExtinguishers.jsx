@@ -57,6 +57,7 @@ export default function FireExtinguishers() {
   const [filterZone, setFilterZone] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filterWeight, setFilterWeight] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
   // --- STATES PHÂN TRANG ---
   const [page, setPage] = useState(0);
@@ -81,12 +82,20 @@ export default function FireExtinguishers() {
   // Khi thay đổi bộ lọc -> Reset về trang đầu tiên
   useEffect(() => {
     setPage(0);
-  }, [searchTerm, filterZone, filterType, filterWeight]);
+  }, [searchTerm, filterZone, filterType, filterWeight, filterStatus]);
 
   useEffect(() => {
     fetchData();
     fetchZones();
-  }, [searchTerm, filterZone, filterType, filterWeight, page, size]);
+  }, [
+    searchTerm,
+    filterZone,
+    filterType,
+    filterWeight,
+    filterStatus,
+    page,
+    size,
+  ]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -99,12 +108,13 @@ export default function FireExtinguishers() {
           filterZone,
           filterType,
           filterWeight,
+          filterStatus,
         ),
         fireExtinguisherService.getStats(),
       ]);
-      setData(listRes.content || []);
-      setTotalPages(listRes.page.totalPages || 0);
-      setTotalElements(listRes.page.totalElements || 0);
+      setData(listRes.data.content || []);
+      setTotalPages(listRes.data.page.totalPages || 0);
+      setTotalElements(listRes.data.page.totalElements || 0);
       setStats(statsRes);
     } catch (error) {
       showToast("Lỗi tải dữ liệu PCCC", "error");
@@ -116,7 +126,7 @@ export default function FireExtinguishers() {
   const fetchZones = async () => {
     try {
       const res = await fireExtinguisherService.getZones();
-      setZones(res || []);
+      setZones(res.data || []);
     } catch (e) {
       console.error(e);
     }
@@ -279,6 +289,17 @@ export default function FireExtinguishers() {
             <option value="CO2">CO2</option>
           </select>
 
+          <select
+            className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm font-medium text-slate-700 min-w-[160px]"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="">Tất cả Trạng thái</option>
+            <option value="OK">An toàn</option>
+            <option value="WARNING">Sắp đến hạn</option>
+            <option value="EXPIRED">Quá hạn nạp</option>
+          </select>
+
           <input
             type="number"
             placeholder="Trọng lượng (VD: 4, 8)..."
@@ -288,12 +309,13 @@ export default function FireExtinguishers() {
           />
 
           {/* Nút Xóa Lọc */}
-          {(filterZone || filterType || filterWeight) && (
+          {(filterZone || filterType || filterWeight || filterStatus) && (
             <button
               onClick={() => {
                 setFilterZone("");
                 setFilterType("");
                 setFilterWeight("");
+                setFilterStatus(""); // <-- Reset luôn trạng thái
               }}
               className="text-sm font-medium text-red-500 hover:text-red-700 px-3 transition-colors"
             >

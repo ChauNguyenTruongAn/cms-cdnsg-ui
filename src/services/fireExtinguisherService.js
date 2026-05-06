@@ -9,6 +9,7 @@ export const fireExtinguisherService = {
     zoneId = "",
     type = "",
     weight = "",
+    status = "", // <-- THÊM PARAM STATUS VÀO ĐÂY
   ) =>
     axiosClient.get("/fire-extinguishers", {
       params: {
@@ -18,6 +19,7 @@ export const fireExtinguisherService = {
         zoneId: zoneId || null,
         type: type || null,
         weight: weight || null,
+        status: status || null,
       },
     }),
 

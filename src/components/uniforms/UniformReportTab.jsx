@@ -43,9 +43,9 @@ export default function UniformReportTab() {
         }),
       ]);
 
-      const uniforms = uniRes.content || [];
-      const imports = importsRes.content || [];
-      const receipts = receiptsRes.content || [];
+      const uniforms = uniRes.data.content || [];
+      const imports = importsRes.data.content || [];
+      const receipts = receiptsRes.data.content || [];
 
       // 2. Xử lý logic gộp dữ liệu theo từng loại đồng phục + size
       const processed = uniforms

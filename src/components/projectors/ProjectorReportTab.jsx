@@ -48,8 +48,8 @@ export default function ProjectorReportTab() {
         projectorService.getAllLoans(0, 2000, "id", "desc", "", "RETURNED"),
       ]);
 
-      const stats = statsRes || [];
-      const allLoans = loansRes.content || [];
+      const stats = statsRes.data || [];
+      const allLoans = loansRes.data.content || [];
 
       // 3. Gộp dữ liệu: Với mỗi máy trong stats, tìm các lượt mượn tương ứng
       const processed = stats.map((stat) => {

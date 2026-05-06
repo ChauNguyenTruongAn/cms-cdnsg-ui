@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  Trash2,
 } from "lucide-react";
 import { projectorService } from "../../services/projectorService";
 import { useToast } from "../../context/ToastContext";
@@ -67,11 +68,10 @@ export default function MaintenanceTab() {
         filterStatus,
       );
       // API trả về content trực tiếp hoặc trong res.data tùy thuộc vào service của bạn
-      setTickets(res.content || []);
+      setTickets(res.data.content || []);
 
-      // SỬA TẠI ĐÂY: Lấy từ res.page
-      setTotalPages(res.page?.totalPages || 0);
-      setTotalElements(res.page?.totalElements || 0);
+      setTotalPages(res.data.page?.totalPages || 0);
+      setTotalElements(res.data.page?.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải danh sách bảo trì", "error");
     } finally {
@@ -82,7 +82,7 @@ export default function MaintenanceTab() {
   const loadAllProjectors = async () => {
     try {
       const res = await projectorService.getAllProjectors(0, 1000);
-      setAllProjectorsList(res.content || []);
+      setAllProjectorsList(res.data.content || []);
     } catch (error) {
       console.log(error);
     }
@@ -99,6 +99,17 @@ export default function MaintenanceTab() {
     });
     setSelectedProjectors([]);
     setIsTicketModalOpen(true);
+  };
+
+  const deleteTicket = async (id) => {
+    if (
+      !window.confirm(
+        "Bạn có chắc chắn muốn xóa phiếu mượn này? Hành động này không thể hoàn tác.",
+      )
+    )
+      return;
+    await projectorService.deleteTicketById(id);
+    fetchData();
   };
 
   const submitCreateTicket = async () => {
@@ -270,6 +281,13 @@ export default function MaintenanceTab() {
                         CHỐT PHIẾU
                       </button>
                     )}
+                    <button
+                      onClick={() => deleteTicket(t.id)}
+                      className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center"
+                      title="Xóa phiếu"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </td>
                 </tr>
               ))}

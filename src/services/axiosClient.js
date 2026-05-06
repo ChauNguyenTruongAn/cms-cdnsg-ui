@@ -4,36 +4,62 @@ const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
     "Content-Type": "application/json",
-    // Thêm dòng này để bỏ qua trang cảnh báo của ngrok
     "ngrok-skip-browser-warning": "true",
   },
+  withCredentials: true,
 });
 
-// Thêm Interceptor cho Request
 axiosClient.interceptors.request.use(
   (config) => {
-    // Nếu bạn muốn chắc chắn hơn, có thể set header ở đây
     config.headers["ngrok-skip-browser-warning"] = "true";
 
-    // const token = localStorage.getItem('token');
-    // if (token) config.headers.Authorization = `Bearer ${token}`;
+    const token = localStorage.getItem("access_token");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error),
 );
-
-// Thêm Interceptor cho Response
 axiosClient.interceptors.response.use(
-  (response) => {
-    if (response && response.data) {
-      return response.data;
+  (response) => response,
+  async (err) => {
+    const originalRequest = err.config;
+
+    if (!originalRequest) return Promise.reject(err);
+
+    if (
+      err.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes("/api/auth/refresh")
+    ) {
+      originalRequest._retry = true;
+
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/auth/refresh`,
+          {},
+          { withCredentials: true },
+        );
+
+        const newAccessToken = res.data;
+
+        if (!newAccessToken) {
+          localStorage.removeItem("access_token");
+          window.location.href = "/login";
+          return Promise.reject(err);
+        }
+
+        localStorage.setItem("access_token", newAccessToken);
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+        return axiosClient(originalRequest);
+      } catch (e) {
+        localStorage.removeItem("access_token");
+        window.location.href = "/login";
+        return Promise.reject(err);
+      }
     }
-    return response;
-  },
-  (error) => {
-    // Nếu bị lỗi CORS hoặc lỗi từ ngrok, nó sẽ nhảy vào đây
-    console.error("API Error: ", error.response?.data || error.message);
-    return Promise.reject(error);
+
+    return Promise.reject(err);
   },
 );
 

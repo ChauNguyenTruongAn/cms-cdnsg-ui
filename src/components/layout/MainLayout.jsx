@@ -11,7 +11,9 @@ import {
   Video,
   Shirt,
   Flame,
+  User,
 } from "lucide-react";
+import UserDropdown from "./UserDropdown";
 
 export default function MainLayout() {
   const [currentDate, setCurrentDate] = useState("");
@@ -36,7 +38,7 @@ export default function MainLayout() {
     { path: "/projectors", label: "Quản lý Máy chiếu", icon: Video },
     { path: "/uniforms", label: "Quản lý Đồng phục", icon: Shirt },
     { path: "/borrow", label: "Mượn / Trả QR", icon: QrCode },
-
+    { path: "/users", label: "Người dùng", icon: User },
   ];
 
   return (
@@ -57,8 +59,7 @@ export default function MainLayout() {
             {/* Khung chứa Text */}
             <div className="flex flex-col justify-center">
               <h1 className="text-[15px] font-extrabold text-[#1a237e] leading-none tracking-tight">
-               PHÒNG QUẢN TRỊ THIẾT BỊ VÀ
-               CƠ SỞ VẬT CHẤT
+                PHÒNG QUẢN TRỊ THIẾT BỊ VÀ CƠ SỞ VẬT CHẤT
               </h1>
               {/* <p className="text-[11px] text-slate-500 mt-1.5 uppercase tracking-widest font-bold">
               </p> */}
@@ -107,6 +108,7 @@ export default function MainLayout() {
             <p className="text-sm text-slate-500 font-medium hidden sm:block">
               {currentDate}
             </p>
+            <UserDropdown />
           </div>
         </header>
 

@@ -88,9 +88,9 @@ export default function BorrowTab() {
         debouncedSearch,
         filterStatus,
       );
-      setData(res.content || []);
-      setTotalPages(res.totalPages || 0);
-      setTotalElements(res.totalElements || 0);
+      setData(res.data.content || []);
+      setTotalPages(res.data.totalPages || 0);
+      setTotalElements(res.data.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải danh sách mượn trả", "error");
     } finally {

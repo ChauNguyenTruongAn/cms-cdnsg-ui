@@ -52,9 +52,9 @@ export default function UniformCatalogTab() {
         size,
         debouncedSearch,
       );
-      setData(res.content || []);
-      setTotalPages(res.page.totalPages || 0);
-      setTotalElements(res.page.totalElements || 0);
+      setData(res.data.content || []);
+      setTotalPages(res.data.page.totalPages || 0);
+      setTotalElements(res.data.page.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải danh mục đồng phục", "error");
     } finally {

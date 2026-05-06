@@ -68,11 +68,12 @@ export default function Inventory() {
         materialService.getAllUnits(),
       ]);
 
-      setMaterials(matsData.content || []);
-      // Spring Data REST thường bọc phân trang trong matsData.page hoặc trả trực tiếp tuỳ backend
-      setTotalPages(matsData.page?.totalPages || matsData.totalPages || 0);
+      setMaterials(matsData.data.content || []);
+      setTotalPages(
+        matsData.data.page?.totalPages || matsData.data.totalPages || 0,
+      );
       setTotalElements(
-        matsData.page?.totalElements || matsData.totalElements || 0,
+        matsData.data.page?.totalElements || matsData.data.totalElements || 0,
       );
 
       setUnits(unitsData || []);

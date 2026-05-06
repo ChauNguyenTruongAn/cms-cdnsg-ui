@@ -4,9 +4,7 @@ import UniformCatalogTab from "../components/uniforms/UniformCatalogTab";
 import UniformImportTab from "../components/uniforms/UniformImportTab";
 import UniformReceiptTab from "../components/uniforms/UniformReceiptTab";
 import UniformReportTab from "../components/uniforms/UniformReportTab";
-// Các tab sau sẽ được import bổ sung
-// import UniformImportTab from '../components/uniforms/UniformImportTab';
-// import UniformReceiptTab from '../components/uniforms/UniformReceiptTab';
+
 
 export default function Uniforms() {
   const [activeTab, setActiveTab] = useState("catalog");

@@ -42,9 +42,9 @@ export default function Report() {
         }),
       ]);
 
-      const materials = matsRes.content || [];
-      const imports = importsRes.content || [];
-      const exports = exportsRes.content || [];
+      const materials = matsRes.data.content || [];
+      const imports = importsRes.data.content || [];
+      const exports = exportsRes.data.content || [];
 
       // 2. Xử lý nhào nặn dữ liệu (Data Transformation)
       const processedData = materials

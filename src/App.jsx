@@ -14,6 +14,10 @@ import FireExtinguishers from "./pages/FireExtinguishers";
 import NotFound from "./pages/NotFound";
 import Docs from "./pages/Docs";
 import ScanBorrow from "./pages/ScanBorrow";
+import LoginPage from "./pages/Login";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import UserProfile from "./pages/Profile";
+import UserManagement from "./pages/UserManagement";
 function App() {
   return (
     <ToastProvider>
@@ -21,19 +25,28 @@ function App() {
       {/* Bọc ngoài cùng */}
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="inventory" element={<Inventory />} />
-            <Route path="docs" element={<Docs />} />
-            <Route path="borrow" element={<Borrow />} />
-            <Route path="transactions" element={<Transactions />} />
-            <Route path="report" element={<Report />} />
-            <Route path="projectors" element={<Projectors />} />
-            <Route path="uniforms" element={<Uniforms />} />
-            <Route path="fire-extinguishers" element={<FireExtinguishers />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="inventory" element={<Inventory />} />
+              <Route path="docs" element={<Docs />} />
+              <Route path="borrow" element={<Borrow />} />
+              <Route path="transactions" element={<Transactions />} />
+              <Route path="report" element={<Report />} />
+              <Route path="projectors" element={<Projectors />} />
+              <Route path="uniforms" element={<Uniforms />} />
+              <Route
+                path="fire-extinguishers"
+                element={<FireExtinguishers />}
+              />
+              <Route path="profile" element={<UserProfile />} />
+              <Route path="users" element={<UserManagement />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
+            <Route path="/scan-borrow" element={<ScanBorrow />} />
           </Route>
-          <Route path="/scan-borrow" element={<ScanBorrow />} />
         </Routes>
       </BrowserRouter>
     </ToastProvider>

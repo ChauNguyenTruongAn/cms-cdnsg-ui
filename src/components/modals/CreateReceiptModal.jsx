@@ -42,7 +42,7 @@ export default function CreateReceiptModal({
       materialService
         .getAllMaterials(0, 1000)
         .then((res) => {
-          setMaterials(res.content || []);
+          setMaterials(res.data.content || []);
         })
         .catch((e) => console.log(e));
     } else {

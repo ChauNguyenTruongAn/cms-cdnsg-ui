@@ -76,7 +76,7 @@ export default function Inventory() {
         matsData.data.page?.totalElements || matsData.data.totalElements || 0,
       );
 
-      setUnits(unitsData || []);
+      setUnits(unitsData.data || []);
     } catch (error) {
       showToast("Không thể kết nối đến server backend!", "error");
     } finally {

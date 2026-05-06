@@ -55,10 +55,11 @@ export default function Dashboard() {
           materialService.getAllMaterials(0, 5, "inventory", "asc", "", "LOW"), // Lấy top 5 vật tư sắp hết
           fireExtinguisherService.getAdvancedStats(), // Danh sách PCCC chi tiết
         ]);
-      setMaterialStats(matStats);
-      setProjectorStats(projStats);
-      setFireStats(fireStatsRes);
-      setLowStockMaterials(lowMats.content || []);
+
+      setMaterialStats(matStats.data);
+      setProjectorStats(projStats.data);
+      setFireStats(fireStatsRes.data);
+      setLowStockMaterials(lowMats.data.content || []);
 
       // Lọc các khu vực PCCC có cảnh báo (minNextRechargeDate < today)
       const warnings = (fireAdvStats.data || []).filter((item) => {

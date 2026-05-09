@@ -11,7 +11,10 @@ export default function EditBorrowModal({ ticket, onClose, onReload }) {
     borrowerName: ticket.borrowerName || "",
     department: ticket.department || "",
     status: ticket.status,
-    note: ticket.note || "",
+    note: ticket.note || ticket.generalNote || "",
+    borrowDate: ticket.borrowDate ? new Date(ticket.borrowDate).toISOString().slice(0, 10) : "",
+    returnTime: ticket.returnTime ? new Date(ticket.returnTime).toISOString().slice(0,10): "",
+    expectedReturnDate: ticket.expectedReturnDate ? new Date(ticket.expectedReturnDate).toISOString().slice(0, 10) : "",
   });
 
   const handleSave = async () => {
@@ -72,6 +75,26 @@ export default function EditBorrowModal({ ticket, onClose, onReload }) {
                 setFormData({ ...formData, department: e.target.value })
               }
             />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Ngày mượn</label>
+              <input
+                type="date"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm"
+                value={formData.borrowDate}
+                onChange={(e) => setFormData({ ...formData, borrowDate: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Dự kiến trả</label>
+              <input
+                type="date"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm"
+                value={formData.expectedReturnDate}
+                onChange={(e) => setFormData({ ...formData, expectedReturnDate: e.target.value })}
+              />
+            </div>
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-2">

@@ -64,6 +64,17 @@ export default function UserManagement() {
   };
   const [formData, setFormData] = useState(initialFormState);
 
+  const role = (v) => {
+    switch (v){
+      case "ADMIN":
+        return "Quản trị viên";
+      case "MANAGER":
+        return "Quản lý";
+      case "USER":
+        return "Mượn đồ"
+    }
+  }
+
   // Khởi tạo
   useEffect(() => {
     setCurrentUserEmail(getCurrentUserEmail());
@@ -78,8 +89,8 @@ export default function UserManagement() {
       const response = await userService.getAllUsers(page, size, keyword);
       const data = response.data || response;
       setUsers(data.content || []);
-      setTotalPages(data.totalPages || 0);
-      setTotalElements(data.totalElements || 0);
+      setTotalPages(data.page.totalPages || 0);
+      setTotalElements(data.page.totalElements || 0);
     } catch (error) {
       console.error(error);
       toast.error("Lỗi khi tải danh sách người dùng");
@@ -295,7 +306,7 @@ export default function UserManagement() {
                     <td className="py-3 px-4">
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-medium">
                         <Shield size={12} />
-                        {user.role?.name || "N/A"}
+                        {role(user.role?.name).toUpperCase() || "N/A"}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
@@ -517,7 +528,7 @@ export default function UserManagement() {
                     <option value="">-- Chọn vai trò --</option>
                     {roles.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.name}
+                        {role(r.name)}
                       </option>
                     ))}
                   </select>

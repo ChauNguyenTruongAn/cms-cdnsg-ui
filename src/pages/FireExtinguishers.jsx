@@ -115,7 +115,7 @@ export default function FireExtinguishers() {
       setData(listRes.data.content || []);
       setTotalPages(listRes.data.page.totalPages || 0);
       setTotalElements(listRes.data.page.totalElements || 0);
-      setStats(statsRes);
+      setStats(statsRes.data);
     } catch (error) {
       showToast("Lỗi tải dữ liệu PCCC", "error");
     } finally {

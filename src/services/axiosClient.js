@@ -41,6 +41,7 @@ axiosClient.interceptors.response.use(
         );
 
         const newAccessToken = res.data;
+        console.log(newAccessToken)
 
         if (!newAccessToken) {
           localStorage.removeItem("access_token");
@@ -48,8 +49,8 @@ axiosClient.interceptors.response.use(
           return Promise.reject(err);
         }
 
-        localStorage.setItem("access_token", newAccessToken);
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        localStorage.setItem("access_token", newAccessToken.access_token);
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken.access_token}`;
 
         return axiosClient(originalRequest);
       } catch (e) {

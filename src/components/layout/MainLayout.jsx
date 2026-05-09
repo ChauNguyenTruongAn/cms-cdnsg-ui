@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -14,9 +14,43 @@ import {
   User,
 } from "lucide-react";
 import UserDropdown from "./UserDropdown";
+import { userService } from "../../services/userService";
+import { parseJwt } from "../../services/authService";
 
 export default function MainLayout() {
   const [currentDate, setCurrentDate] = useState("");
+  const [userData, setUserData] = useState(null); // State lưu thông tin user
+  const [isLoading, setIsLoading] = useState(true);
+  const navigation = useNavigate();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          setIsLoading(false);
+          return;
+        }
+
+        const decodedPayload = parseJwt(token);
+        if (decodedPayload && decodedPayload.sub) {
+          const email = decodedPayload.sub;
+          const response = await userService.getUserByEmail(email);
+          const user = response.data || response;
+          setUserData(user);
+          if (user.role.name === "USER") {
+            navigation("/user/borrow");
+          }
+        }
+      } catch (error) {
+        console.error("Lỗi tải thông tin Header:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   useEffect(() => {
     const options = {
@@ -108,7 +142,12 @@ export default function MainLayout() {
             <p className="text-sm text-slate-500 font-medium hidden sm:block">
               {currentDate}
             </p>
-            <UserDropdown />
+            <UserDropdown
+              userData={userData}
+              setUserData={setUserData}
+              isLoading={isLoading}
+              setIsLoading={setIsLoading}
+            />
           </div>
         </header>
 

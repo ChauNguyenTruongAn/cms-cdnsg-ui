@@ -18,11 +18,12 @@ import LoginPage from "./pages/Login";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import UserProfile from "./pages/Profile";
 import UserManagement from "./pages/UserManagement";
+import UserBorrow from "./pages/UserBorrow";
+import UserLayout from "./components/layout/UserLayout";
 function App() {
   return (
     <ToastProvider>
       {" "}
-      {/* Bọc ngoài cùng */}
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -43,6 +44,9 @@ function App() {
               />
               <Route path="profile" element={<UserProfile />} />
               <Route path="users" element={<UserManagement />} />
+            </Route>
+            <Route path="/user" element={<UserLayout />}>
+              <Route path="borrow" element={<UserBorrow />} />
             </Route>
             <Route path="*" element={<NotFound />} />
             <Route path="/scan-borrow" element={<ScanBorrow />} />

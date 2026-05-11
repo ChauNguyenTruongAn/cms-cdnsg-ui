@@ -22,6 +22,22 @@ export default function MainLayout() {
   const [userData, setUserData] = useState(null); // State lưu thông tin user
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigate();
+  const [navItems, setNavItems] = useState([
+    { path: "/", label: "Tổng quan", icon: LayoutDashboard },
+    { path: "/inventory", label: "Vật tư kho", icon: Package },
+    { path: "/transactions", label: "Nhập / Xuất", icon: ArrowRightLeft },
+    { path: "/report", label: "Báo cáo thống kê", icon: FileSpreadsheet },
+    { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
+    {
+      path: "/fire-extinguishers",
+      label: "Phòng cháy chữa cháy",
+      icon: Flame,
+    },
+    { path: "/projectors", label: "Quản lý Máy chiếu", icon: Video },
+    { path: "/uniforms", label: "Quản lý Đồng phục", icon: Shirt },
+    { path: "/borrow", label: "Mượn / Trả QR", icon: QrCode },
+    { path: "/users", label: "Người dùng", icon: User },
+  ]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -38,6 +54,15 @@ export default function MainLayout() {
           const response = await userService.getUserByEmail(email);
           const user = response.data || response;
           setUserData(user);
+
+          if (user.role.name === "MANAGER") {
+            setNavItems([
+              { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
+              { path: "/borrow-user", label: "Mượn / Trả QR", icon: QrCode },
+              { path: "/users", label: "Người dùng", icon: User },
+            ]);
+          }
+
           if (user.role.name === "USER") {
             navigation("/user/borrow");
           }
@@ -61,25 +86,6 @@ export default function MainLayout() {
     };
     setCurrentDate(new Date().toLocaleDateString("vi-VN", options));
   }, []);
-
-  const navItems = [
-    { path: "/", label: "Tổng quan", icon: LayoutDashboard },
-    { path: "/inventory", label: "Vật tư kho", icon: Package },
-    { path: "/transactions", label: "Nhập / Xuất", icon: ArrowRightLeft },
-    { path: "/report", label: "Báo cáo thống kê", icon: FileSpreadsheet },
-    { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
-    { path: "/fire-extinguishers", label: "Phòng cháy chữa cháy", icon: Flame },
-    { path: "/projectors", label: "Quản lý Máy chiếu", icon: Video },
-    { path: "/uniforms", label: "Quản lý Đồng phục", icon: Shirt },
-    { path: "/borrow", label: "Mượn / Trả QR", icon: QrCode },
-    { path: "/users", label: "Người dùng", icon: User },
-  ];
-
-  const navItemsManager = [
-    { path: "/", label: "Tổng quan", icon: LayoutDashboard },
-    { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
-    { path: "/user/borrow", label: "Mượn / Trả QR", icon: QrCode },
-  ];
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
@@ -108,49 +114,25 @@ export default function MainLayout() {
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {userData.role.name == "ADMIN"
-            ? navItemsManager.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    className={({ isActive }) =>
-                      `w-full flex items-center p-3 rounded-lg transition-all ${
-                        isActive
-                          ? "bg-[#1a237e] text-white shadow-md shadow-indigo-100/50"
-                          : "text-slate-600 hover:bg-slate-50"
-                      }`
-                    }
-                  >
-                    <Icon size={20} />
-                    <span className="ml-3 font-medium text-sm">
-                      {item.label}
-                    </span>
-                  </NavLink>
-                );
-              })
-            : navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    className={({ isActive }) =>
-                      `w-full flex items-center p-3 rounded-lg transition-all ${
-                        isActive
-                          ? "bg-[#1a237e] text-white shadow-md shadow-indigo-100/50"
-                          : "text-slate-600 hover:bg-slate-50"
-                      }`
-                    }
-                  >
-                    <Icon size={20} />
-                    <span className="ml-3 font-medium text-sm">
-                      {item.label}
-                    </span>
-                  </NavLink>
-                );
-              })}
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `w-full flex items-center p-3 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-[#1a237e] text-white shadow-md shadow-indigo-100/50"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`
+                }
+              >
+                <Icon size={20} />
+                <span className="ml-3 font-medium text-sm">{item.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
       </aside>
 

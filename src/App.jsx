@@ -44,6 +44,7 @@ function App() {
               />
               <Route path="profile" element={<UserProfile />} />
               <Route path="users" element={<UserManagement />} />
+              <Route path="borrow-user" element={<UserBorrow />} />
             </Route>
             <Route path="/user" element={<UserLayout />}>
               <Route path="borrow" element={<UserBorrow />} />

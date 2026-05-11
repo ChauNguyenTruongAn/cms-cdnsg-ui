@@ -34,11 +34,22 @@ export default function UserDropdown({
     navigate("/login");
   };
 
+  const role = (v) => {
+    switch (v){
+      case "ADMIN":
+        return "Quản trị viên";
+      case "MANAGER":
+        return "Quản lý phòng thực hành";
+      case "USER":
+        return "Sinh viên"
+    }
+  }
+
   // Xác định hiển thị (hiện "Đang tải..." nếu gọi API chưa xong)
   const userName = isLoading
     ? "Đang tải..."
     : userData?.fullName || "Người dùng";
-  const userRole = isLoading ? "..." : userData?.role?.name || "Nhân viên";
+  const userRole = isLoading ? "..." : role(userData?.role?.name) || "Nhân viên";
 
   return (
     <div className="relative" ref={dropdownRef}>

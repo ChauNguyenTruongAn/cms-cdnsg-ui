@@ -69,9 +69,9 @@ export default function UserManagement() {
       case "ADMIN":
         return "Quản trị viên";
       case "MANAGER":
-        return "Quản lý";
+        return "Quản lý phòng thực hành";
       case "USER":
-        return "Mượn đồ"
+        return "Sinh viên"
     }
   }
 

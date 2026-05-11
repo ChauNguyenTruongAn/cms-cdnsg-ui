@@ -75,6 +75,12 @@ export default function MainLayout() {
     { path: "/users", label: "Người dùng", icon: User },
   ];
 
+  const navItemsManager = [
+    { path: "/", label: "Tổng quan", icon: LayoutDashboard },
+    { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
+    { path: "/user/borrow", label: "Mượn / Trả QR", icon: QrCode },
+  ];
+
   return (
     <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
       {/* Sidebar */}
@@ -102,25 +108,49 @@ export default function MainLayout() {
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `w-full flex items-center p-3 rounded-lg transition-all ${
-                    isActive
-                      ? "bg-[#1a237e] text-white shadow-md shadow-indigo-100/50"
-                      : "text-slate-600 hover:bg-slate-50"
-                  }`
-                }
-              >
-                <Icon size={20} />
-                <span className="ml-3 font-medium text-sm">{item.label}</span>
-              </NavLink>
-            );
-          })}
+          {userData.role.name == "ADMIN"
+            ? navItemsManager.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `w-full flex items-center p-3 rounded-lg transition-all ${
+                        isActive
+                          ? "bg-[#1a237e] text-white shadow-md shadow-indigo-100/50"
+                          : "text-slate-600 hover:bg-slate-50"
+                      }`
+                    }
+                  >
+                    <Icon size={20} />
+                    <span className="ml-3 font-medium text-sm">
+                      {item.label}
+                    </span>
+                  </NavLink>
+                );
+              })
+            : navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `w-full flex items-center p-3 rounded-lg transition-all ${
+                        isActive
+                          ? "bg-[#1a237e] text-white shadow-md shadow-indigo-100/50"
+                          : "text-slate-600 hover:bg-slate-50"
+                      }`
+                    }
+                  >
+                    <Icon size={20} />
+                    <span className="ml-3 font-medium text-sm">
+                      {item.label}
+                    </span>
+                  </NavLink>
+                );
+              })}
         </nav>
       </aside>
 

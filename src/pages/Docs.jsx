@@ -212,9 +212,10 @@ export default function Docs() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4 flex flex-col h-full">
       {/* Header & Công cụ */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex items-center w-full md:w-96 bg-slate-50 p-3 rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
-          <Search className="text-slate-400 mr-2" size={20} />
+      <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-3">
+        {/* Row 1: Search */}
+        <div className="flex items-center w-full bg-slate-50 p-3 rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+          <Search className="text-slate-400 mr-2 shrink-0" size={20} />
           <input
             type="text"
             placeholder="Tìm tên văn bản, mô tả..."
@@ -223,10 +224,10 @@ export default function Docs() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
-          {/* LỌC THEO LOẠI (DỮ LIỆU ĐỘNG) */}
+        {/* Row 2: Filter + Actions */}
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <select
-            className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl outline-none text-sm font-medium w-full md:w-auto focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 min-w-0 bg-slate-50 border border-slate-200 p-2.5 rounded-xl outline-none text-sm font-medium focus:ring-2 focus:ring-indigo-500"
             value={filterCategory}
             onChange={(e) => {
               setFilterCategory(e.target.value);
@@ -243,16 +244,19 @@ export default function Docs() {
 
           <button
             onClick={() => setIsCategoryModalOpen(true)}
-            className="bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center hover:bg-slate-200 whitespace-nowrap border"
+            className="bg-slate-100 text-slate-700 px-3 sm:px-4 py-2.5 rounded-xl text-sm font-bold flex items-center hover:bg-slate-200 whitespace-nowrap border"
           >
-            <Layers size={18} className="mr-2 text-indigo-500" /> QUẢN LÝ LOẠI
+            <Layers size={18} className="mr-1.5 text-indigo-500" />
+            <span className="hidden xs:inline">QUẢN LÝ LOẠI</span>
+            <span className="xs:hidden">Loại</span>
           </button>
 
           <button
             onClick={() => setIsUploadOpen(true)}
-            className="bg-[#1a237e] text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center hover:bg-[#0d145e] shadow-lg shadow-indigo-200 whitespace-nowrap"
+            className="bg-[#1a237e] text-white px-4 sm:px-5 py-2.5 rounded-xl text-sm font-bold flex items-center hover:bg-[#0d145e] shadow-lg shadow-indigo-200 whitespace-nowrap"
           >
-            <UploadCloud size={18} className="mr-2" /> TẢI LÊN
+            <UploadCloud size={18} className="mr-1.5" />
+            TẢI LÊN
           </button>
         </div>
       </div>
@@ -361,22 +365,22 @@ export default function Docs() {
 
         {/* Thanh Phân Trang */}
         {!loading && data.length > 0 && (
-          <div className="p-4 border border-slate-200 rounded-2xl bg-white shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 text-sm mt-auto">
-            <span className="text-slate-500 font-medium">
+          <div className="p-4 border border-slate-200 rounded-2xl bg-white shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3 text-sm mt-auto">
+            <span className="text-slate-500 font-medium text-center sm:text-left">
               Hiển thị{" "}
               <span className="font-bold text-[#1a237e]">{data.length}</span> /
               tổng{" "}
               <span className="font-bold text-[#1a237e]">{totalElements}</span>
             </span>
-            <div className="flex items-center gap-2">
-              <span className="mr-2 text-slate-500">Số tài liệu/trang:</span>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span className="text-slate-500 text-xs sm:text-sm">Số tài liệu/trang:</span>
               <select
                 value={size}
                 onChange={(e) => {
                   setSize(Number(e.target.value));
-                  setPage(0); // Reset về trang 1
+                  setPage(0);
                 }}
-                className="p-1.5 border border-slate-200 rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer mr-4"
+                className="p-1.5 border border-slate-200 rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer"
               >
                 <option value={12}>12</option>
                 <option value={24}>24</option>
@@ -390,7 +394,7 @@ export default function Docs() {
               >
                 <ChevronLeft size={18} />
               </button>
-              <span className="px-4 py-2 font-bold text-slate-700">
+              <span className="px-3 py-2 font-bold text-slate-700 text-sm">
                 Trang {page + 1} / {totalPages || 1}
               </span>
               <button

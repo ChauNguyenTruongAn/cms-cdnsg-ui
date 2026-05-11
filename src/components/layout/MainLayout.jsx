@@ -12,6 +12,8 @@ import {
   Shirt,
   Flame,
   User,
+  Menu,
+  X,
 } from "lucide-react";
 import UserDropdown from "./UserDropdown";
 import { userService } from "../../services/userService";
@@ -19,8 +21,9 @@ import { parseJwt } from "../../services/authService";
 
 export default function MainLayout() {
   const [currentDate, setCurrentDate] = useState("");
-  const [userData, setUserData] = useState(null); // State lưu thông tin user
+  const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigation = useNavigate();
   const [navItems, setNavItems] = useState([
     { path: "/", label: "Tổng quan", icon: LayoutDashboard },
@@ -59,7 +62,6 @@ export default function MainLayout() {
             setNavItems([
               { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
               { path: "/borrow-user", label: "Mượn / Trả QR", icon: QrCode },
-              // { path: "/users", label: "Người dùng", icon: User },
             ]);
             navigation("/docs");
           }
@@ -88,63 +90,100 @@ export default function MainLayout() {
     setCurrentDate(new Date().toLocaleDateString("vi-VN", options));
   }, []);
 
-  return (
-    <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
-        <div className="p-5 border-b border-slate-100 bg-white">
-          <div className="flex items-center gap-3.5">
-            {/* Khung chứa Logo */}
-            <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-100 shadow-sm flex-shrink-0 transition-transform hover:scale-105">
-              <img
-                src="/Logo-Truong-Cao-dang-Bach-khoa-Nam-Sai-Gon.webp"
-                alt="Logo Kho BKNSG"
-                className="h-9 w-9 object-contain drop-shadow-sm"
-              />
-            </div>
+  const closeSidebar = () => setSidebarOpen(false);
 
-            {/* Khung chứa Text */}
-            <div className="flex flex-col justify-center">
-              <h1 className="text-[15px] font-extrabold text-[#1a237e] leading-none tracking-tight">
-                PHÒNG QUẢN TRỊ THIẾT BỊ VÀ CƠ SỞ VẬT CHẤT
-              </h1>
-              {/* <p className="text-[11px] text-slate-500 mt-1.5 uppercase tracking-widest font-bold">
-              </p> */}
-            </div>
+  const SidebarContent = () => (
+    <>
+      <div className="p-5 border-b border-slate-100 bg-white">
+        <div className="flex items-center gap-3.5">
+          <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-100 shadow-sm flex-shrink-0 transition-transform hover:scale-105">
+            <img
+              src="/Logo-Truong-Cao-dang-Bach-khoa-Nam-Sai-Gon.webp"
+              alt="Logo Kho BKNSG"
+              className="h-9 w-9 object-contain drop-shadow-sm"
+            />
+          </div>
+          <div className="flex flex-col justify-center">
+            <h1 className="text-[14px] font-extrabold text-[#1a237e] leading-tight tracking-tight">
+              PHÒNG QUẢN TRỊ THIẾT BỊ VÀ CƠ SỞ VẬT CHẤT
+            </h1>
           </div>
         </div>
+      </div>
 
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `w-full flex items-center p-3 rounded-lg transition-all ${
-                    isActive
-                      ? "bg-[#1a237e] text-white shadow-md shadow-indigo-100/50"
-                      : "text-slate-600 hover:bg-slate-50"
-                  }`
-                }
-              >
-                <Icon size={20} />
-                <span className="ml-3 font-medium text-sm">{item.label}</span>
-              </NavLink>
-            );
-          })}
-        </nav>
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={closeSidebar}
+              className={({ isActive }) =>
+                `w-full flex items-center p-3 rounded-lg transition-all ${
+                  isActive
+                    ? "bg-[#1a237e] text-white shadow-md shadow-indigo-100/50"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`
+              }
+            >
+              <Icon size={20} />
+              <span className="ml-3 font-medium text-sm">{item.label}</span>
+            </NavLink>
+          );
+        })}
+      </nav>
+    </>
+  );
+
+  return (
+    <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
+      {/* Sidebar - Desktop (always visible) + Mobile (drawer) */}
+      <aside
+        className={`
+          fixed lg:static inset-y-0 left-0 z-50
+          w-64 bg-white border-r border-slate-200 flex flex-col shrink-0
+          transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0
+        `}
+      >
+        {/* Close button for mobile */}
+        <button
+          onClick={closeSidebar}
+          className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 lg:hidden"
+        >
+          <X size={18} />
+        </button>
+        <SidebarContent />
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden bg-slate-50">
+      <main className="flex-1 flex flex-col overflow-hidden bg-slate-50 min-w-0">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sm:px-8 shrink-0">
-          <h2 className="text-lg font-bold text-[#1c72bd]">
-            PHẦN MỀM QUẢN LÝ KHO
-          </h2>
-          <div className="flex items-center space-x-4">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 shrink-0">
+          <div className="flex items-center gap-3">
+            {/* Hamburger - mobile only */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors lg:hidden"
+              aria-label="Mở menu"
+            >
+              <Menu size={22} />
+            </button>
+            <h2 className="text-base sm:text-lg font-bold text-[#1c72bd] truncate">
+              PHẦN MỀM QUẢN LÝ KHO
+            </h2>
+          </div>
+          <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="relative">
               <Bell
                 size={20}
@@ -152,7 +191,7 @@ export default function MainLayout() {
               />
             </div>
             <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
-            <p className="text-sm text-slate-500 font-medium hidden sm:block">
+            <p className="text-sm text-slate-500 font-medium hidden md:block">
               {currentDate}
             </p>
             <UserDropdown
@@ -165,8 +204,8 @@ export default function MainLayout() {
         </header>
 
         {/* Dynamic Content Area */}
-        <section className="flex-1 overflow-y-auto p-4 sm:p-8">
-          <Outlet /> {/* Nơi các Component con (Pages) sẽ được render */}
+        <section className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <Outlet />
         </section>
       </main>
     </div>

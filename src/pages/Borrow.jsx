@@ -176,10 +176,10 @@ export default function Borrow() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex gap-6 border-b border-slate-200 shrink-0 mb-6">
+      <div className="flex gap-4 border-b border-slate-200 shrink-0 mb-4 sm:mb-6 overflow-x-auto pb-px">
         <button
           onClick={() => setActiveTab("tickets")}
-          className={`pb-4 px-2 font-bold text-sm transition-all border-b-2 ${
+          className={`pb-3 sm:pb-4 px-2 font-bold text-sm transition-all border-b-2 whitespace-nowrap ${
             activeTab === "tickets" ? "border-[#1a237e] text-[#1a237e]" : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -187,7 +187,7 @@ export default function Borrow() {
         </button>
         <button
           onClick={() => setActiveTab("items")}
-          className={`pb-4 px-2 font-bold text-sm transition-all border-b-2 ${
+          className={`pb-3 sm:pb-4 px-2 font-bold text-sm transition-all border-b-2 whitespace-nowrap ${
             activeTab === "items" ? "border-[#1a237e] text-[#1a237e]" : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -200,7 +200,7 @@ export default function Borrow() {
       ) : (
         <div className="space-y-6 flex flex-col flex-1 min-h-0">
           {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
           <div className="flex items-center gap-2 text-slate-500 mb-2">
             <Package size={16} />
@@ -238,11 +238,11 @@ export default function Borrow() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row justify-between gap-3">
+        <div className="relative flex-1">
           <Search
-            className="absolute left-3 top-3 text-slate-400"
-            size={20}
+            className="absolute left-3 top-3.5 text-slate-400"
+            size={18}
           />
           <input
             type="text"
@@ -256,16 +256,16 @@ export default function Borrow() {
           />
         </div>
         
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3">
           <select
-            className="px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-[#1a237e]/30 shadow-sm text-sm transition-all cursor-pointer font-medium text-slate-700"
+            className="flex-1 sm:flex-none min-w-0 px-3 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-[#1a237e]/30 shadow-sm text-sm transition-all cursor-pointer font-medium text-slate-700"
             value={filterStatus}
             onChange={(e) => {
               setFilterStatus(e.target.value);
               setPage(0);
             }}
           >
-            <option value="">Tất cả trạng thái</option>
+            <option value="">Tất cả</option>
             <option value="PENDING">Chờ duyệt</option>
             <option value="BORROWED">Đang mượn</option>
             <option value="RETURNED">Đã trả đủ</option>
@@ -274,9 +274,10 @@ export default function Borrow() {
           </select>
           <button
             onClick={() => setShowScanModal(true)}
-            className="flex items-center px-6 py-3 bg-[#1a237e] text-white font-bold rounded-2xl hover:bg-[#0d145e] transition-colors shadow-md active:scale-95"
+            className="flex items-center px-4 sm:px-6 py-3 bg-[#1a237e] text-white font-bold rounded-2xl hover:bg-[#0d145e] transition-colors shadow-md active:scale-95 whitespace-nowrap"
           >
-            <ScanLine size={18} className="mr-2" /> QUÉT TRẢ ĐỒ
+            <ScanLine size={18} className="sm:mr-2" />
+            <span className="hidden sm:inline">QUÉT TRẢ ĐỒ</span>
           </button>
         </div>
       </div>
@@ -286,10 +287,10 @@ export default function Borrow() {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase font-bold text-[11px] tracking-wider">
               <tr>
-                <th className="p-5">Mã Phiếu</th>
-                <th className="p-5">Danh sách vật tư</th>
-                <th className="p-5">Người mượn</th>
-                <th className="p-5 text-center">Hành động</th>
+                <th className="p-3 sm:p-5">Mã Phiếu</th>
+                <th className="p-3 sm:p-5 hidden md:table-cell">Danh sách vật tư</th>
+                <th className="p-3 sm:p-5">Người mượn</th>
+                <th className="p-3 sm:p-5 text-center">Hành động</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -316,10 +317,21 @@ export default function Borrow() {
                     onClick={() => setSelectedTicket(t)}
                     className="hover:bg-indigo-50/50 cursor-pointer transition-colors group"
                   >
-                    <td className="p-5 font-bold text-[#1a237e]">
-                      {t.borrowCode}
+                    <td className="p-3 sm:p-5">
+                      <div className="font-bold text-[#1a237e] text-sm">{t.borrowCode}</div>
+                      {/* Show items inline on mobile */}
+                      <div className="md:hidden mt-1 space-y-0.5">
+                        {t.items?.slice(0, 2).map((item, idx) => (
+                          <div key={idx} className="text-[11px] text-slate-500">
+                            • {item.itemName} <span className="font-bold text-indigo-500">(x{item.quantity})</span>
+                          </div>
+                        ))}
+                        {t.items?.length > 2 && (
+                          <div className="text-[11px] text-slate-400">+{t.items.length - 2} vật phẩm khác</div>
+                        )}
+                      </div>
                     </td>
-                    <td className="p-5">
+                    <td className="p-3 sm:p-5 hidden md:table-cell">
                       <div className="flex flex-col gap-1">
                         {t.items?.map((item, idx) => (
                           <div key={idx} className="text-xs text-slate-600">
@@ -331,11 +343,13 @@ export default function Borrow() {
                         ))}
                       </div>
                     </td>
-                    <td className="p-5 font-medium">{t.borrowerName}</td>
-                    <td className="p-5">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="p-3 sm:p-5">
+                      <div className="font-medium text-sm">{t.borrowerName}</div>
+                    </td>
+                    <td className="p-3 sm:p-5">
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
                         {renderStatus(t.status, t)}
-                        <div className="flex items-center gap-1.5 border-l-2 border-slate-100 pl-3">
+                        <div className="flex items-center gap-1.5 sm:border-l-2 sm:border-slate-100 sm:pl-3">
                           {t.status === "PENDING" && (
                             <>
                               <button
@@ -343,7 +357,7 @@ export default function Borrow() {
                                   e.stopPropagation();
                                   handleApprove(t.id);
                                 }}
-                                className="px-3 py-1.5 text-[11px] font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg transition-all"
+                                className="px-2 sm:px-3 py-1.5 text-[11px] font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg transition-all"
                               >
                                 Duyệt
                               </button>
@@ -352,7 +366,7 @@ export default function Borrow() {
                                   e.stopPropagation();
                                   handleReject(t.id);
                                 }}
-                                className="px-3 py-1.5 text-[11px] font-bold text-white bg-slate-400 hover:bg-slate-500 rounded-lg transition-all"
+                                className="px-2 sm:px-3 py-1.5 text-[11px] font-bold text-white bg-slate-400 hover:bg-slate-500 rounded-lg transition-all"
                               >
                                 Từ chối
                               </button>
@@ -364,7 +378,7 @@ export default function Borrow() {
                                 e.stopPropagation();
                                 handleResolveIncomplete(t.id);
                               }}
-                              className="px-3 py-1.5 text-[11px] font-bold text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-all"
+                              className="px-2 sm:px-3 py-1.5 text-[11px] font-bold text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-all"
                             >
                               Đã bù đồ
                             </button>
@@ -376,7 +390,7 @@ export default function Borrow() {
                                   e.stopPropagation();
                                   setManualReturnTicket(t);
                                 }}
-                                className={`px-3 py-1.5 text-[11px] font-bold text-white rounded-lg transition-all mr-1 ${
+                                className={`px-2 sm:px-3 py-1.5 text-[11px] font-bold text-white rounded-lg transition-all ${
                                   isTicketOverdue(t)
                                     ? "bg-red-600 hover:bg-red-700"
                                     : "bg-blue-500 hover:bg-blue-600"
@@ -389,10 +403,10 @@ export default function Borrow() {
                                   e.stopPropagation();
                                   setSelectedTicket(t);
                                 }}
-                                className="p-2 text-slate-400 bg-white border border-slate-100 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                className="p-1.5 text-slate-400 bg-white border border-slate-100 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                                 title="Xem chi tiết"
                               >
-                                <QrCode size={16} strokeWidth={2.5} />
+                                <QrCode size={14} strokeWidth={2.5} />
                               </button>
                             </>
                           )}
@@ -401,10 +415,10 @@ export default function Borrow() {
                               e.stopPropagation();
                               handleDelete(t.id, t.borrowCode);
                             }}
-                            className="p-2 text-slate-400 bg-white border border-slate-100 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                            className="p-1.5 text-slate-400 bg-white border border-slate-100 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                             title="Xóa"
                           >
-                            <Trash2 size={16} strokeWidth={2.5} />
+                            <Trash2 size={14} strokeWidth={2.5} />
                           </button>
                         </div>
                       </div>

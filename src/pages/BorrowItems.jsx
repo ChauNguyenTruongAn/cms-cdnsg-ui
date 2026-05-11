@@ -112,8 +112,8 @@ export default function BorrowItems() {
 
   return (
     <div className="space-y-6 flex flex-col h-full animate-in fade-in zoom-in-95 duration-300">
-      <div className="flex flex-col md:flex-row justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row justify-between gap-3">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-3.5 text-slate-400" size={18} />
           <input
             type="text"
@@ -125,7 +125,7 @@ export default function BorrowItems() {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="flex items-center px-5 py-3 bg-[#1a237e] text-white font-bold rounded-2xl hover:bg-[#0d145e] transition-colors shadow-md text-sm"
+          className="flex items-center justify-center px-5 py-3 bg-[#1a237e] text-white font-bold rounded-2xl hover:bg-[#0d145e] transition-colors shadow-md text-sm whitespace-nowrap"
         >
           <Plus size={18} className="mr-2" /> THÊM VẬT PHẨM
         </button>
@@ -136,11 +136,11 @@ export default function BorrowItems() {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase font-bold text-[11px] tracking-wider">
               <tr>
-                <th className="p-5">Tên Vật Phẩm</th>
-                <th className="p-5">Danh Mục</th>
-                <th className="p-5 text-center">Tổng Số Lượng</th>
-                <th className="p-5 text-center">Khả Dụng</th>
-                <th className="p-5 text-center">Hành Động</th>
+                <th className="p-3 sm:p-5">Tên Vật Phẩm</th>
+                <th className="p-3 sm:p-5 hidden sm:table-cell">Danh Mục</th>
+                <th className="p-3 sm:p-5 text-center hidden md:table-cell">Tổng Số Lượng</th>
+                <th className="p-3 sm:p-5 text-center">Khả Dụng</th>
+                <th className="p-3 sm:p-5 text-center">Hành Động</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -160,41 +160,46 @@ export default function BorrowItems() {
               ) : (
                 items.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-5">
-                      <div className="font-bold text-[#1a237e] flex items-center gap-2">
-                        <Package size={16} className="text-slate-400" />
-                        {item.name}
+                    <td className="p-3 sm:p-5">
+                      <div className="font-bold text-[#1a237e] flex items-center gap-2 text-sm">
+                        <Package size={15} className="text-slate-400 shrink-0" />
+                        <span>{item.name}</span>
                       </div>
                       <div className="text-xs text-slate-500 mt-1 line-clamp-1">{item.description}</div>
+                      {/* Mobile: show category + quantity inline */}
+                      <div className="sm:hidden flex items-center gap-2 mt-1.5">
+                        <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold">{item.category}</span>
+                        <span className="text-[11px] text-slate-500">{item.totalQuantity} {item.unit}</span>
+                      </div>
                     </td>
-                    <td className="p-5">
+                    <td className="p-3 sm:p-5 hidden sm:table-cell">
                       <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[11px] font-bold">
                         {item.category}
                       </span>
                     </td>
-                    <td className="p-5 text-center font-bold text-slate-700">
+                    <td className="p-3 sm:p-5 text-center font-bold text-slate-700 hidden md:table-cell">
                       {item.totalQuantity} <span className="text-xs font-normal text-slate-500">{item.unit}</span>
                     </td>
-                    <td className="p-5 text-center">
-                      <span className={`font-bold ${item.availableQuantity > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    <td className="p-3 sm:p-5 text-center">
+                      <span className={`font-bold text-sm ${item.availableQuantity > 0 ? 'text-green-600' : 'text-red-500'}`}>
                         {item.availableQuantity}
                       </span>
                     </td>
-                    <td className="p-5">
+                    <td className="p-3 sm:p-5">
                       <div className="flex justify-center gap-2">
                         <button
                           onClick={() => handleOpenModal(item)}
-                          className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                          className="p-1.5 sm:p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                           title="Sửa"
                         >
-                          <Edit size={16} strokeWidth={2.5} />
+                          <Edit size={15} strokeWidth={2.5} />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id, item.name)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 sm:p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Xóa"
                         >
-                          <Trash2 size={16} strokeWidth={2.5} />
+                          <Trash2 size={15} strokeWidth={2.5} />
                         </button>
                       </div>
                     </td>

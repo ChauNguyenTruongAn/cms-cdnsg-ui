@@ -59,8 +59,9 @@ export default function MainLayout() {
             setNavItems([
               { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
               { path: "/borrow-user", label: "Mượn / Trả QR", icon: QrCode },
-              { path: "/users", label: "Người dùng", icon: User },
+              // { path: "/users", label: "Người dùng", icon: User },
             ]);
+            navigation("/docs");
           }
 
           if (user.role.name === "USER") {

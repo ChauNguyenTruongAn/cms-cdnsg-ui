@@ -169,6 +169,7 @@ export default function MaintenanceTab() {
         detailId: d.id,
         projectorId: d.projector.id, // Lưu ID máy chiếu để gửi về cho Backend
         name: d.projector.name,
+        serialNumber: d.projector.serialNumber,
         nextStatus: "AVAILABLE",
       })),
     });
@@ -504,7 +505,7 @@ export default function MaintenanceTab() {
                       className="p-3 border rounded-xl bg-slate-50 flex flex-col gap-2"
                     >
                       <span className="font-bold text-[#1a237e] text-sm">
-                        {item.name}
+                        {item.name} + {item.serialNumber}
                       </span>
                       <select
                         className="w-full p-2 bg-white border rounded outline-none text-sm font-medium"

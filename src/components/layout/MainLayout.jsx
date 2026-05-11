@@ -38,7 +38,7 @@ export default function MainLayout() {
     },
     { path: "/projectors", label: "Quản lý Máy chiếu", icon: Video },
     { path: "/uniforms", label: "Quản lý Đồng phục", icon: Shirt },
-    { path: "/borrow", label: "Mượn / Trả QR", icon: QrCode },
+    { path: "/borrow", label: "Mượn / Trả vật tư", icon: QrCode },
     { path: "/users", label: "Người dùng", icon: User },
   ]);
 
@@ -61,7 +61,7 @@ export default function MainLayout() {
           if (user.role.name === "MANAGER") {
             setNavItems([
               { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
-              { path: "/borrow-user", label: "Mượn / Trả QR", icon: QrCode },
+              { path: "/borrow-user", label: "Mượn / Trả vật tư", icon: QrCode },
             ]);
             navigation("/docs");
           }

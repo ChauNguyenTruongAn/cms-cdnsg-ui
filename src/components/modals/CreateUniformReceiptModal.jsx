@@ -24,7 +24,7 @@ export default function CreateUniformReceiptModal({
     if (isOpen) {
       uniformService
         .getAllUniforms(0, 1000)
-        .then((res) => setUniforms(res.content || []));
+        .then((res) => setUniforms(res.data.content || []));
       setItems([{ uniformId: "", quantity: 1 }]);
       setFormData({
         date: new Date().toISOString().split("T")[0],

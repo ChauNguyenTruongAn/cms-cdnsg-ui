@@ -20,6 +20,7 @@ import UserProfile from "./pages/Profile";
 import UserManagement from "./pages/UserManagement";
 import UserBorrow from "./pages/UserBorrow";
 import UserLayout from "./components/layout/UserLayout";
+import InventoryProperty from "./pages/InventoryProperty";
 function App() {
   return (
     <ToastProvider>
@@ -45,6 +46,7 @@ function App() {
               <Route path="profile" element={<UserProfile />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="borrow-user" element={<UserBorrow />} />
+              <Route path="inventory-property" element={<InventoryProperty />} />
             </Route>
             <Route path="/user" element={<UserLayout />}>
               <Route path="borrow" element={<UserBorrow />} />

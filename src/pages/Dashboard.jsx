@@ -12,6 +12,11 @@ import {
   PackageOpen,
   Loader2,
   ShieldCheck,
+  TrendingUp,
+  ArrowDownLeft, // Icon cho Nhập kho
+  ArrowUpRight, // Icon cho Xuất kho
+  History, // Icon cho Lịch sử
+  CalendarDays,
 } from "lucide-react";
 import { materialService } from "../services/materialService";
 import { projectorService } from "../services/projectorService";
@@ -37,8 +42,12 @@ export default function Dashboard() {
   const [fireStats, setFireStats] = useState({ ok: 0, warning: 0, expired: 0 });
 
   // Danh sách chi tiết cho phần Cảnh báo
-  const [lowStockMaterials, setLowStockMaterials] = useState([]);
+  const [topMaterials, setTopMaterials] = useState([]);
   const [fireWarningList, setFireWarningList] = useState([]);
+  const [recentActivities, setRecentActivities] = useState({
+    recentImports: [],
+    recentExports: [],
+  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -47,19 +56,29 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [matStats, projStats, fireStatsRes, lowMats, fireAdvStats] =
-        await Promise.all([
-          materialService.getMaterialStats(),
-          projectorService.getProjectorStats(),
-          fireExtinguisherService.getStats(),
-          materialService.getAllMaterials(0, 5, "inventory", "asc", "", "LOW"), // Lấy top 5 vật tư sắp hết
-          fireExtinguisherService.getAdvancedStats(), // Danh sách PCCC chi tiết
-        ]);
+      const [
+        matStats,
+        projStats,
+        fireStatsRes,
+        topMatsRes,
+        fireAdvStats,
+        recentActsRes,
+      ] = await Promise.all([
+        materialService.getMaterialStats(),
+        projectorService.getProjectorStats(),
+        fireExtinguisherService.getStats(),
+        materialService.getTopExportedMaterials(),
+        fireExtinguisherService.getAdvancedStats(),
+        materialService.getRecentActivities(), // Danh sách PCCC chi tiết
+      ]);
 
       setMaterialStats(matStats.data);
       setProjectorStats(projStats.data);
       setFireStats(fireStatsRes.data);
-      setLowStockMaterials(lowMats.data.content || []);
+      setTopMaterials(topMatsRes.data || []);
+      setRecentActivities(
+        recentActsRes.data || { recentImports: [], recentExports: [] },
+      );
 
       // Lọc các khu vực PCCC có cảnh báo (minNextRechargeDate < today)
       const warnings = (fireAdvStats.data || []).filter((item) => {
@@ -150,51 +169,164 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
           <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <h3 className="font-bold text-slate-800 flex items-center">
-              <AlertTriangle size={18} className="mr-2 text-orange-500" /> Cảnh
-              báo Vật tư (Tồn kho &lt; 5)
+              <TrendingUp size={18} className="mr-2 text-indigo-500" /> Top 10
+              Vật Tư Sử Dụng Nhiều
             </h3>
             <button
               onClick={() => navigate("/inventory")}
               className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center"
             >
-              Xem tất cả <ArrowRight size={14} className="ml-1" />
+              Xem kho <ArrowRight size={14} className="ml-1" />
             </button>
           </div>
           <div className="p-0 flex-1">
-            {lowStockMaterials.length === 0 ? (
+            {topMaterials.length === 0 ? (
               <div className="p-10 text-center text-slate-400 flex flex-col items-center">
-                <CheckCircle size={40} className="text-green-400 mb-2" />
-                <p className="font-medium text-sm">
-                  Kho hàng ổn định. Không có vật tư nào sắp hết.
-                </p>
+                <PackageOpen size={40} className="text-slate-300 mb-2" />
+                <p className="font-medium text-sm">Chưa có dữ liệu xuất kho.</p>
               </div>
             ) : (
               <ul className="divide-y divide-slate-100">
-                {lowStockMaterials.map((m) => (
+                {topMaterials.map((item, index) => (
                   <li
-                    key={m.id}
-                    className="p-4 flex justify-between items-center hover:bg-orange-50/30 transition-colors"
+                    key={item.material.id}
+                    className="p-4 flex justify-between items-center hover:bg-indigo-50/30 transition-colors"
                   >
-                    <div>
-                      <p className="font-bold text-slate-800">{m.name}</p>
-                      <p className="text-xs text-slate-500">
-                        Đơn vị: {m.unit?.name || "N/A"}
-                      </p>
+                    <div className="flex items-center gap-4">
+                      {/* Số thứ tự xếp hạng */}
+                      <span className="text-lg font-black text-slate-300 w-5 text-center">
+                        #{index + 1}
+                      </span>
+                      <div>
+                        <p className="font-bold text-slate-800">
+                          {item.material.name}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          Đơn vị: {item.material.unit?.name || "N/A"}
+                        </p>
+                      </div>
                     </div>
                     <div className="text-right">
-                      <p
-                        className={`text-lg font-black ${m.inventory === 0 ? "text-red-600" : "text-orange-500"}`}
-                      >
-                        {m.inventory}
+                      {/* Tổng số lượng đã xuất */}
+                      <p className="text-lg font-black text-indigo-600">
+                        {item.totalExportedQuantity}
                       </p>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">
-                        Tồn kho
+                        Đã xuất
                       </p>
                     </div>
                   </li>
                 ))}
               </ul>
             )}
+          </div>
+        </div>
+
+        {/* KHU VỰC 4: LỊCH SỬ GIAO DỊCH (NHẬP/XUẤT GẦN NHẤT) */}
+        <div className="mt-8 space-y-4">
+          <h2 className="text-lg font-bold text-slate-800 flex items-center">
+            <History className="mr-2 text-indigo-600" /> Hoạt động Nhập/Xuất gần
+            đây
+          </h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* CỘT 1: 10 VẬT TƯ NHẬP GẦN NHẤT */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+              <div className="p-4 border-b border-slate-100 flex items-center bg-emerald-50/50">
+                <ArrowDownLeft size={18} className="mr-2 text-emerald-600" />
+                <h3 className="font-bold text-emerald-800">
+                  10 Vật tư Nhập gần nhất
+                </h3>
+              </div>
+              <div className="p-0 flex-1">
+                {recentActivities.recentImports.length === 0 ? (
+                  <div className="p-6 text-center text-slate-400 text-sm">
+                    Chưa có giao dịch nhập kho.
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-slate-100">
+                    {recentActivities.recentImports.map((item, idx) => (
+                      <li
+                        key={idx}
+                        className="p-4 hover:bg-slate-50 transition-colors flex justify-between items-center"
+                      >
+                        <div>
+                          <p className="font-bold text-slate-800">
+                            {item.materialName}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1 flex items-center">
+                            <CalendarDays size={12} className="mr-1" />{" "}
+                            {item.transactionDate}
+                            <span className="mx-2 text-slate-300">|</span>
+                            Mã:{" "}
+                            <span className="font-semibold text-slate-600 ml-1">
+                              {item.receiptCode}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-black text-emerald-600">
+                            +{item.quantity}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">
+                            {item.unitName}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            {/* CỘT 2: 10 VẬT TƯ XUẤT GẦN NHẤT */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+              <div className="p-4 border-b border-slate-100 flex items-center bg-amber-50/50">
+                <ArrowUpRight size={18} className="mr-2 text-amber-600" />
+                <h3 className="font-bold text-amber-800">
+                  10 Vật tư Xuất gần nhất
+                </h3>
+              </div>
+              <div className="p-0 flex-1">
+                {recentActivities.recentExports.length === 0 ? (
+                  <div className="p-6 text-center text-slate-400 text-sm">
+                    Chưa có giao dịch xuất kho.
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-slate-100">
+                    {recentActivities.recentExports.map((item, idx) => (
+                      <li
+                        key={idx}
+                        className="p-4 hover:bg-slate-50 transition-colors flex justify-between items-center"
+                      >
+                        <div>
+                          <p className="font-bold text-slate-800">
+                            {item.materialName}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1 flex items-center">
+                            <CalendarDays size={12} className="mr-1" />{" "}
+                            {item.transactionDate}
+                            <span className="mx-2 text-slate-300">|</span>
+                            Mã:{" "}
+                            <span className="font-semibold text-slate-600 ml-1">
+                              {item.receiptCode}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-black text-amber-600">
+                            -{item.quantity}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">
+                            {item.unitName}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -261,7 +393,9 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+        </div>
 
+        <div className="space-y-6">
           {/* Bình chữa cháy */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">

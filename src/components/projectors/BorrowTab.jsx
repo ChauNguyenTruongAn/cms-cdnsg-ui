@@ -108,7 +108,7 @@ export default function BorrowTab() {
         "",
         "AVAILABLE",
       );
-      setProjectors(res.content || []);
+      setProjectors(res.data.content || []);
     } catch (error) {
       console.log(error);
     }

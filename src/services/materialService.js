@@ -29,6 +29,8 @@ export const materialService = {
     axiosClient.put("/materials", data, { params: { id } }),
   deleteMaterial: (id) => axiosClient.delete("/materials", { params: { id } }),
   getMaterialStats: () => axiosClient.get("/materials/stats"),
+  getTopExportedMaterials: () => axiosClient.get("/materials/top-exported"),
+  getRecentActivities: () => axiosClient.get("/materials/recent-activities"),
 
   // --- ĐƠN VỊ TÍNH (UNITS) ---
   getAllUnits: () => axiosClient.get("/units/all"),

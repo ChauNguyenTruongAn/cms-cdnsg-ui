@@ -18,7 +18,7 @@ export default function UnitManagerModal({ isOpen, onClose }) {
     setLoading(true);
     try {
       const res = await materialService.getAllUnits();
-      setUnits(res || []);
+      setUnits(res.data || []);
     } catch (error) {
       showToast("Lỗi tải danh sách Đơn vị tính", "error");
     } finally {

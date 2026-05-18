@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, NavLink, useNavigation, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -8,6 +8,7 @@ import {
   Bell,
   ArrowRightLeft,
   FileSpreadsheet,
+  ClipboardList,
   Video,
   Shirt,
   Flame,
@@ -39,6 +40,7 @@ export default function MainLayout() {
     { path: "/projectors", label: "Quản lý Máy chiếu", icon: Video },
     { path: "/uniforms", label: "Quản lý Đồng phục", icon: Shirt },
     { path: "/borrow", label: "Mượn / Trả vật tư", icon: QrCode },
+    { path: "/inventory-property", label: "Tài sản Phòng ban", icon: ClipboardList },
     { path: "/users", label: "Người dùng", icon: User },
   ]);
 
@@ -62,6 +64,7 @@ export default function MainLayout() {
             setNavItems([
               { path: "/docs", label: "Văn bản & Hình ảnh", icon: FileText },
               { path: "/borrow-user", label: "Mượn / Trả vật tư", icon: QrCode },
+              { path: "/inventory-property", label: "Tài sản Phòng ban", icon: ClipboardList },
             ]);
             navigation("/docs");
           }
@@ -205,7 +208,7 @@ export default function MainLayout() {
 
         {/* Dynamic Content Area */}
         <section className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <Outlet context={{ userRole: userData?.role?.name }} />
         </section>
       </main>
     </div>

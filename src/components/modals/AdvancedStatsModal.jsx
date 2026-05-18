@@ -24,7 +24,7 @@ export default function AdvancedStatsModal({ isOpen, onClose }) {
     setLoading(true);
     try {
       const res = await fireExtinguisherService.getAdvancedStats();
-      setStatsData(res || []);
+      setStatsData(res.data || []);
     } catch (e) {
       showToast("Lỗi tải dữ liệu thống kê", "error");
     } finally {

@@ -16,4 +16,11 @@ export const receiptService = {
   createExport: (data) => axiosClient.post("/export-receipt", data),
   updateExport: (id, data) => axiosClient.put(`/export-receipt/${id}`, data),
   deleteExport: (id) => axiosClient.delete(`/export-receipt/${id}`),
+
+  // BÁO CÁO NHẬP/XUẤT
+  // Thêm 2 dòng này vào receiptService của bạn
+  getImportReport: (params) =>
+    axiosClient.get("/import-receipt/report", { params }),
+  getExportReport: (params) =>
+    axiosClient.get("/export-receipt/report", { params }),
 };

@@ -8,11 +8,13 @@ import {
   ChevronRight,
   Loader2,
   Scaling,
-} from "lucide-react";
+  History,
+} from "lucide-react"; // Đừng quên import History icon nhé
 import { materialService } from "../services/materialService";
 import { useToast } from "../context/ToastContext";
 import EditMaterialModal from "../components/modals/EditMaterialModal";
 import UnitManagerModal from "../components/modals/UnitManagerModal";
+import ViewHistoryMaterialModal from "../components/modals/ViewHistoryMaterial";
 
 export default function Inventory() {
   const { showToast } = useToast();
@@ -39,6 +41,9 @@ export default function Inventory() {
   const [materialToEdit, setMaterialToEdit] = useState(null);
 
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
+
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [historyMaterialId, setHistoryMaterialId] = useState(null);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -228,6 +233,16 @@ export default function Inventory() {
                       <td className="px-6 py-4 flex space-x-3 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => {
+                            setHistoryMaterialId(item.id);
+                            setIsHistoryModalOpen(true);
+                          }}
+                          className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Xem lịch sử"
+                        >
+                          <History size={16} />
+                        </button>
+                        <button
+                          onClick={() => {
                             setMaterialToEdit(item);
                             setIsEditModalOpen(true);
                           }}
@@ -403,6 +418,15 @@ export default function Inventory() {
           setIsUnitModalOpen(false);
           fetchData();
         }}
+      />
+
+      <ViewHistoryMaterialModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => {
+          setIsHistoryModalOpen(false);
+          setHistoryMaterialId(null);
+        }}
+        materialId={historyMaterialId}
       />
     </div>
   );

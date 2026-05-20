@@ -32,6 +32,9 @@ export const materialService = {
   getTopExportedMaterials: () => axiosClient.get("/materials/top-exported"),
   getRecentActivities: () => axiosClient.get("/materials/recent-activities"),
 
+  // LỊCH SỬ TÍNH TOÁN
+  getHistoryMaterialById: (id) => axiosClient.get(`/materials/${id}/history`),
+
   // --- ĐƠN VỊ TÍNH (UNITS) ---
   getAllUnits: () => axiosClient.get("/units/all"),
   getUnitById: (id) => axiosClient.get("/units", { params: { id } }),

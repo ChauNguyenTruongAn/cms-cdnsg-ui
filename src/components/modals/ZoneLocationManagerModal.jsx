@@ -35,7 +35,7 @@ export default function ZoneLocationManagerModal({ isOpen, onClose }) {
     setLoading(true);
     try {
       const res = await fireExtinguisherService.getZones();
-      setZones(res || []);
+      setZones(res.data || []);
     } catch (e) {
       showToast("Lỗi tải danh sách Khu vực", "error");
     } finally {

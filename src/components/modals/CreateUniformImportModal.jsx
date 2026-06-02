@@ -25,7 +25,7 @@ export default function CreateUniformImportModal({
     if (isOpen) {
       uniformService
         .getAllUniforms(0, 1000)
-        .then((res) => setUniforms(res.content || []))
+        .then((res) => setUniforms(res.data.content || []))
         .catch(() => showToast("Không thể tải danh sách đồng phục", "error"));
 
       setItems([{ uniformId: "", quantity: 1 }]);

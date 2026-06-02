@@ -9,11 +9,13 @@ import {
   UserCheck,
   Receipt,
   Eye,
+  Edit,
 } from "lucide-react";
 import { uniformService } from "../../services/uniformService";
 import { useToast } from "../../context/ToastContext";
 import CreateUniformReceiptModal from "../modals/CreateUniformReceiptModal";
 import ViewUniformReceiptModal from "../modals/ViewUniformReceiptModal";
+import EditUniformReceiptModal from "../modals/EditUniformReceiptModal";
 
 export default function UniformReceiptTab() {
   const { showToast } = useToast();
@@ -28,6 +30,7 @@ export default function UniformReceiptTab() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewData, setViewData] = useState(null);
+  const [editData, setEditData] = useState(null);
 
   // Bộ lọc theo tên người nhận
   const [filters, setFilters] = useState({
@@ -160,7 +163,7 @@ export default function UniformReceiptTab() {
                       {item.totalQuantity} cái
                     </span>
                   </td>
-                  <td className="px-6 py-4 flex justify-end">
+                  <td className="px-6 py-4 flex justify-end gap-1">
                     <button
                       onClick={() => setViewData(item)}
                       className="p-2 text-blue-500 hover:bg-blue-100 rounded-lg transition-colors"
@@ -169,8 +172,16 @@ export default function UniformReceiptTab() {
                       <Eye size={18} />
                     </button>
                     <button
+                      onClick={() => setEditData(item)}
+                      className="p-2 text-amber-500 hover:bg-amber-100 rounded-lg transition-colors"
+                      title="Chỉnh sửa"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
                       onClick={() => handleDelete(item.id)}
                       className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                      title="Xóa phiếu"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -248,6 +259,12 @@ export default function UniformReceiptTab() {
         onClose={() => setViewData(null)}
         type="receipt"
         data={viewData}
+      />
+      <EditUniformReceiptModal
+        isOpen={!!editData}
+        onClose={() => setEditData(null)}
+        receiptData={editData}
+        onSuccess={fetchData}
       />
     </div>
   );

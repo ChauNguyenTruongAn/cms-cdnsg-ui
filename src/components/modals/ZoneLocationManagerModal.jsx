@@ -48,7 +48,7 @@ export default function ZoneLocationManagerModal({ isOpen, onClose }) {
     setLocationInput({ id: null, name: "" });
     try {
       const res = await fireExtinguisherService.getLocationsByZone(zone.id);
-      setLocations(res || []);
+      setLocations(res.data || []);
     } catch (e) {
       showToast("Lỗi tải danh sách Vị trí", "error");
     }

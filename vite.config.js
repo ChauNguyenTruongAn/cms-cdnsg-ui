@@ -7,8 +7,12 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
+      // "/api": {
+      //   target: "https://poplar-mowing-radish.ngrok-free.dev",
+      //   changeOrigin: true,
+      // },
       "/api": {
-        target: "https://poplar-mowing-radish.ngrok-free.dev",
+        target: "http://localhost:8080",
         changeOrigin: true,
       },
     },

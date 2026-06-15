@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Search,
   Trash2,
+  Eye,
 } from "lucide-react";
 import { projectorService } from "../../services/projectorService";
 import { useToast } from "../../context/ToastContext";
@@ -31,6 +32,7 @@ export default function MaintenanceTab() {
 
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [isCompleteTicketOpen, setIsCompleteTicketOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -274,6 +276,16 @@ export default function MaintenanceTab() {
                     )}
                   </td>
                   <td className="px-6 py-4 flex justify-end space-x-2">
+                    <button
+                      onClick={() => {
+                        setSelectedTicket(t);
+                        setIsViewModalOpen(true);
+                      }}
+                      className="px-3 py-1.5 bg-blue-100 text-blue-700 font-bold text-xs rounded-lg hover:bg-blue-200 transition-colors flex items-center"
+                      title="Xem chi tiết phiếu"
+                    >
+                      <Eye size={12} className="mr-1" /> XEM PHIẾU
+                    </button>
                     {t.status === "IN_PROGRESS" && (
                       <button
                         onClick={() => openCompleteModal(t)}
@@ -545,6 +557,95 @@ export default function MaintenanceTab() {
                 ) : (
                   "Xác nhận thu hồi & Hoàn tất"
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isViewModalOpen && selectedTicket && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95">
+            <div className="p-5 border-b flex justify-between items-center bg-blue-600 text-white">
+              <h3 className="font-bold text-lg flex items-center">
+                <Eye className="mr-2" size={20} /> Chi Tiết Phiếu Bảo Trì
+              </h3>
+              <button onClick={() => setIsViewModalOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border">
+                <div>
+                  <span className="block text-xs font-bold text-slate-400 uppercase">Mã phiếu</span>
+                  <span className="font-bold text-slate-800 text-sm">
+                    {selectedTicket.ticketCode || `#BT-${selectedTicket.id}`}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-bold text-slate-400 uppercase">Trạng thái</span>
+                  {selectedTicket.status === "IN_PROGRESS" ? (
+                    <span className="inline-block mt-1 px-2.5 py-0.5 text-[11px] font-bold rounded bg-amber-50 text-amber-600 border border-amber-200">
+                      ĐANG BẢO TRÌ
+                    </span>
+                  ) : (
+                    <span className="inline-block mt-1 px-2.5 py-0.5 text-[11px] font-bold rounded bg-green-50 text-green-600 border border-green-200">
+                      HOÀN TẤT
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <span className="block text-xs font-bold text-slate-400 uppercase">Ngày bắt đầu</span>
+                  <span className="font-bold text-slate-700 text-sm">{selectedTicket.startDate}</span>
+                </div>
+                <div>
+                  <span className="block text-xs font-bold text-slate-400 uppercase">Ngày hoàn thành</span>
+                  <span className="font-bold text-slate-700 text-sm">
+                    {selectedTicket.completionDate || "—"}
+                  </span>
+                </div>
+                <div className="col-span-2">
+                  <span className="block text-xs font-bold text-slate-400 uppercase">Kỹ thuật viên / Đơn vị</span>
+                  <span className="font-bold text-slate-700 text-sm">{selectedTicket.technician || "N/A"}</span>
+                </div>
+                {selectedTicket.generalNote && (
+                  <div className="col-span-2">
+                    <span className="block text-xs font-bold text-slate-400 uppercase">Ghi chú chung</span>
+                    <p className="text-slate-600 text-sm mt-1 bg-white p-2 rounded border border-slate-100">
+                      {selectedTicket.generalNote}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h4 className="font-bold text-sm text-slate-800 mb-2 uppercase tracking-wide">
+                  Danh sách máy bảo trì ({selectedTicket.details?.length || 0} máy)
+                </h4>
+                <div className="space-y-3">
+                  {selectedTicket.details?.map((d) => (
+                    <div
+                      key={d.id}
+                      className="p-3 border rounded-xl bg-slate-50 flex items-center justify-between"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-800 text-sm">{d.projector?.name}</span>
+                        <span className="text-xs text-slate-500">S/N: {d.projector?.serialNumber}</span>
+                      </div>
+                      <span className="px-2.5 py-1 text-[11px] font-bold rounded-lg border bg-blue-50 text-blue-600 border-blue-200">
+                        {translateStatus(d.projector?.status)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t bg-slate-50 flex">
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="flex-1 py-3 bg-white border font-bold text-slate-600 rounded-xl hover:bg-slate-100 transition-colors shadow-sm"
+              >
+                Đóng
               </button>
             </div>
           </div>

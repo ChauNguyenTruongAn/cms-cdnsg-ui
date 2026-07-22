@@ -17,7 +17,11 @@ import CreateUniformReceiptModal from "../modals/CreateUniformReceiptModal";
 import ViewUniformReceiptModal from "../modals/ViewUniformReceiptModal";
 import EditUniformReceiptModal from "../modals/EditUniformReceiptModal";
 
-export default function UniformReceiptTab() {
+export default function UniformReceiptTab({
+  onReceiptChange,
+  initialFromDate = "",
+  initialToDate = "",
+}) {
   const { showToast } = useToast();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,10 +38,18 @@ export default function UniformReceiptTab() {
 
   // Bộ lọc theo tên người nhận
   const [filters, setFilters] = useState({
-    fromDate: "",
-    toDate: "",
+    fromDate: initialFromDate,
+    toDate: initialToDate,
     cusName: "",
   });
+
+  useEffect(() => {
+    setFilters((prev) => ({
+      ...prev,
+      fromDate: initialFromDate || "",
+      toDate: initialToDate || "",
+    }));
+  }, [initialFromDate, initialToDate]);
 
   // Reset trang khi đổi bộ lọc
   useEffect(() => {
@@ -57,13 +69,18 @@ export default function UniformReceiptTab() {
         ...filters,
       });
       setData(res.data.content || []);
-      setTotalPages(res.data.page.totalPages || 0);
-      setTotalElements(res.data.page.totalElements || 0);
+      setTotalPages(res.data.page?.totalPages || res.data.totalPages || 0);
+      setTotalElements(res.data.page?.totalElements || res.data.totalElements || 0);
     } catch (error) {
       showToast("Lỗi tải dữ liệu cấp phát!", "error");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSuccess = () => {
+    fetchData();
+    if (onReceiptChange) onReceiptChange();
   };
 
   const handleDelete = async (id) => {
@@ -76,6 +93,7 @@ export default function UniformReceiptTab() {
         await uniformService.deleteReceipt(id);
         showToast("Đã xóa và hoàn trả tồn kho!");
         fetchData();
+        if (onReceiptChange) onReceiptChange();
       } catch (e) {
         showToast("Lỗi khi xóa phiếu!", "error");
       }
@@ -252,7 +270,7 @@ export default function UniformReceiptTab() {
       <CreateUniformReceiptModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchData}
+        onSuccess={handleSuccess}
       />
       <ViewUniformReceiptModal
         isOpen={!!viewData}
@@ -264,7 +282,7 @@ export default function UniformReceiptTab() {
         isOpen={!!editData}
         onClose={() => setEditData(null)}
         receiptData={editData}
-        onSuccess={fetchData}
+        onSuccess={handleSuccess}
       />
     </div>
   );

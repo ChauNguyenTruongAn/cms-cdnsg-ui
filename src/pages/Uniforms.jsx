@@ -1,16 +1,225 @@
-import React, { useState } from "react";
-import { Shirt, Import, ClipboardList, BarChart3 } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Shirt,
+  Import,
+  ClipboardList,
+  BarChart3,
+  CalendarCheck,
+  CalendarDays,
+  ArrowRight,
+  Loader2,
+  RefreshCw,
+  TrendingUp,
+} from "lucide-react";
+import { uniformService } from "../services/uniformService";
 import UniformCatalogTab from "../components/uniforms/UniformCatalogTab";
 import UniformImportTab from "../components/uniforms/UniformImportTab";
 import UniformReceiptTab from "../components/uniforms/UniformReceiptTab";
 import UniformReportTab from "../components/uniforms/UniformReportTab";
 
+// Hàm lấy chuỗi ngày hiện tại (YYYY-MM-DD) theo múi giờ địa phương
+const getTodayStr = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+// Hàm định dạng ngày hiển thị (DD/MM/YYYY)
+const formatDateDisplay = (dateStr) => {
+  if (!dateStr) return "";
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return dateStr;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+};
 
 export default function Uniforms() {
   const [activeTab, setActiveTab] = useState("catalog");
 
+  // State cho bộ đếm thống kê phiếu xuất
+  const [todayDate] = useState(getTodayStr());
+  const [selectedDate, setSelectedDate] = useState(getTodayStr());
+  const [tabDateFilter, setTabDateFilter] = useState({
+    fromDate: "",
+    toDate: "",
+  });
+
+  const [todayStats, setTodayStats] = useState({ count: 0, totalQty: 0 });
+  const [selectedStats, setSelectedStats] = useState({
+    count: 0,
+    totalQty: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  // Hàm tải dữ liệu thống kê cho 1 ngày
+  const fetchStatsForDate = async (dateStr) => {
+    try {
+      const res = await uniformService.getAllReceipts({
+        fromDate: dateStr,
+        toDate: dateStr,
+        page: 0,
+        size: 1000,
+      });
+      const list = res.data.content || [];
+      const count =
+        res.data.page?.totalElements ?? res.data.totalElements ?? list.length;
+      const totalQty = list.reduce(
+        (sum, item) => sum + (item.totalQuantity || 0),
+        0
+      );
+      return { count, totalQty };
+    } catch (err) {
+      console.error("Lỗi tải thống kê phiếu xuất ngày:", dateStr, err);
+      return { count: 0, totalQty: 0 };
+    }
+  };
+
+  const loadAllStats = useCallback(async () => {
+    setLoadingStats(true);
+    try {
+      const todayData = await fetchStatsForDate(todayDate);
+      setTodayStats(todayData);
+
+      if (selectedDate === todayDate) {
+        setSelectedStats(todayData);
+      } else {
+        const selData = await fetchStatsForDate(selectedDate);
+        setSelectedStats(selData);
+      }
+    } finally {
+      setLoadingStats(false);
+    }
+  }, [todayDate, selectedDate]);
+
+  useEffect(() => {
+    loadAllStats();
+  }, [loadAllStats]);
+
+  // Chuyển sang tab Cấp phát và lọc theo ngày đã chọn
+  const handleViewReceiptsForDate = (date) => {
+    setTabDateFilter({ fromDate: date, toDate: date });
+    setActiveTab("receipt");
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+      {/* HEADER WIDGET: THỐNG KÊ PHIẾU XUẤT KHO / CẤP PHÁT */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* CARD 1: SỐ PHIẾU XUẤT TRONG NGÀY (HÔM NAY) */}
+        <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white p-5 rounded-2xl border border-amber-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div className="flex justify-between items-start">
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold uppercase tracking-wide">
+                <CalendarCheck size={14} className="text-amber-700" />
+                Hôm nay: {formatDateDisplay(todayDate)}
+              </span>
+              <h4 className="text-slate-600 font-semibold text-sm mt-3">
+                Số phiếu đã xuất trong ngày
+              </h4>
+            </div>
+            <div className="p-3 bg-amber-500 text-white rounded-xl shadow-md shadow-amber-500/20">
+              <TrendingUp size={24} />
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-baseline justify-between">
+            <div>
+              <div className="text-3xl font-black text-slate-800 tracking-tight">
+                {loadingStats ? (
+                  <Loader2
+                    size={28}
+                    className="animate-spin text-amber-600 inline"
+                  />
+                ) : (
+                  todayStats.count
+                )}{" "}
+                <span className="text-lg font-semibold text-slate-500">
+                  phiếu
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Tổng cộng:{" "}
+                <span className="font-bold text-amber-700">
+                  {todayStats.totalQty} cái
+                </span>{" "}
+                đồng phục
+              </p>
+            </div>
+            <button
+              onClick={() => handleViewReceiptsForDate(todayDate)}
+              className="text-xs font-bold text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-3 py-2 rounded-lg transition-colors inline-flex items-center gap-1"
+            >
+              Xem chi tiết <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* CARD 2: CHỌN NGÀY ĐỂ XEM SỐ PHIẾU XUẤT */}
+        <div className="bg-gradient-to-br from-indigo-500/10 via-indigo-500/5 to-white p-5 rounded-2xl border border-indigo-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
+          <div className="flex justify-between items-start gap-2">
+            <div className="flex-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-bold uppercase tracking-wide">
+                <CalendarDays size={14} className="text-indigo-700" />
+                Tra cứu theo ngày
+              </span>
+              <div className="mt-2.5 flex items-center gap-2">
+                <label className="text-xs font-bold text-slate-600 whitespace-nowrap">
+                  Chọn ngày:
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-3 py-1.5 bg-white border border-indigo-200 rounded-lg text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer"
+                />
+              </div>
+            </div>
+            <button
+              onClick={loadAllStats}
+              title="Làm mới số liệu"
+              className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+            >
+              <RefreshCw
+                size={18}
+                className={loadingStats ? "animate-spin" : ""}
+              />
+            </button>
+          </div>
+
+          <div className="mt-4 flex items-baseline justify-between">
+            <div>
+              <div className="text-3xl font-black text-slate-800 tracking-tight">
+                {loadingStats ? (
+                  <Loader2
+                    size={28}
+                    className="animate-spin text-indigo-600 inline"
+                  />
+                ) : (
+                  selectedStats.count
+                )}{" "}
+                <span className="text-lg font-semibold text-slate-500">
+                  phiếu
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Ngày {formatDateDisplay(selectedDate)}:{" "}
+                <span className="font-bold text-indigo-700">
+                  {selectedStats.totalQty} cái
+                </span>{" "}
+                đồng phục
+              </p>
+            </div>
+            <button
+              onClick={() => handleViewReceiptsForDate(selectedDate)}
+              className="text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-100 hover:bg-indigo-200 px-3 py-2 rounded-lg transition-colors inline-flex items-center gap-1"
+            >
+              Xem phiếu ngày này <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Tab Navigation */}
       <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm inline-flex w-full overflow-x-auto">
         <button
@@ -59,8 +268,14 @@ export default function Uniforms() {
       <div className="mt-4">
         {activeTab === "catalog" && <UniformCatalogTab />}
         {activeTab === "import" && <UniformImportTab />}
-        {activeTab === "receipt" && <UniformReceiptTab />}
-        {activeTab === "stats" && <UniformReportTab />} {/* Đổi dòng này */}
+        {activeTab === "receipt" && (
+          <UniformReceiptTab
+            onReceiptChange={loadAllStats}
+            initialFromDate={tabDateFilter.fromDate}
+            initialToDate={tabDateFilter.toDate}
+          />
+        )}
+        {activeTab === "stats" && <UniformReportTab />}
       </div>
     </div>
   );
